@@ -76,6 +76,16 @@ fun ActiveMonthlyCustomersScreen(
         val snackbarHostState = remember { SnackbarHostState() }
         var customerIdToInactivate by remember { mutableStateOf<Int?>(null) }
 
+        val filteredCustomers = uiState.customers.filter { customer ->
+            val query = uiState.searchQuery.trim().lowercase(Locale.ROOT)
+            if (query.isBlank()) {
+                true
+            } else {
+                customer.name.contains(query, ignoreCase = true) ||
+                    customer.plates.any { plate -> plate.contains(query, ignoreCase = true) }
+            }
+        }
+
         LaunchedEffect(uiState.errorMessage) {
             uiState.errorMessage?.let { message ->
                 snackbarHostState.showSnackbar(message)
@@ -106,14 +116,28 @@ fun ActiveMonthlyCustomersScreen(
                 }
 
                 item {
-                    if (uiState.customers.isEmpty()) {
-                        Text("Nenhum cliente cadastrado")
+                    OutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = viewModel::updateSearchQuery,
+                        label = { Text("Pesquisar por placa ou nome") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+
+                item {
+                    if (filteredCustomers.isEmpty()) {
+                        if (uiState.searchQuery.isBlank()) {
+                            Text("Nenhum cliente cadastrado")
+                        } else {
+                            Text("Nenhum cliente encontrado para essa pesquisa")
+                        }
                     } else {
-                        Text("Clientes ativos: ${uiState.customers.size}")
+                        Text("Clientes ativos: ${filteredCustomers.size}")
                     }
                 }
 
-                items(uiState.customers) { customer ->
+                items(filteredCustomers) { customer ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors()

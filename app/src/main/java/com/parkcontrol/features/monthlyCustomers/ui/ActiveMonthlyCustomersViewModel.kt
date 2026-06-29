@@ -40,6 +40,10 @@ class ActiveMonthlyCustomersViewModel(
         }
     }
 
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
     fun loadCustomerForEdit(customerId: Int?) {
         if (customerId == null) {
             _uiState.value = _uiState.value.copy(selectedCustomer = null)
@@ -116,7 +120,7 @@ class ActiveMonthlyCustomersViewModel(
 
                 _uiState.value = _uiState.value.copy(successMessage = "Cliente salvo com sucesso")
                 onSuccess()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = "Erro ao salvar cliente")
             }
         }
@@ -127,7 +131,7 @@ class ActiveMonthlyCustomersViewModel(
             try {
                 inactivateMonthlyCustomerUseCase(customerId)
                 _uiState.value = _uiState.value.copy(successMessage = "Cliente inativado com sucesso")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = "Erro ao inativar cliente")
             }
         }
