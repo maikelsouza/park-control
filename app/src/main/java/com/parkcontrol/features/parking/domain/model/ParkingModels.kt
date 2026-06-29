@@ -1,6 +1,5 @@
 package com.parkcontrol.features.parking.domain.model
 
-import com.parkcontrol.core.domain.model.ParkingConfig
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
