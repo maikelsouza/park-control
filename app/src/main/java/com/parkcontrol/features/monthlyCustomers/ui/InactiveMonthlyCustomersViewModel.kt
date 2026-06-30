@@ -30,6 +30,10 @@ class InactiveMonthlyCustomersViewModel(
         }
     }
 
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
     fun activateCustomer(customerId: Int) {
         viewModelScope.launch {
             try {

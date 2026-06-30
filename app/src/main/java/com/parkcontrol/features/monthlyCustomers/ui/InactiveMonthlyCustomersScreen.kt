@@ -34,6 +34,7 @@ import java.util.Locale
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
 
 @Composable
 fun InactiveMonthlyCustomersScreen(
@@ -52,6 +53,16 @@ fun InactiveMonthlyCustomersScreen(
         val uiState by viewModel.uiState.collectAsState()
         val snackbarHostState = remember { SnackbarHostState() }
         var customerIdToActivate by remember { mutableStateOf<Int?>(null) }
+
+        val filteredCustomers = uiState.customers.filter { customer ->
+            val query = uiState.searchQuery.trim().lowercase(Locale.ROOT)
+            if (query.isBlank()) {
+                true
+            } else {
+                customer.name.contains(query, ignoreCase = true) ||
+                    customer.plates.any { plate -> plate.contains(query, ignoreCase = true) }
+            }
+        }
 
         LaunchedEffect(uiState.errorMessage) {
             uiState.errorMessage?.let { message ->
@@ -83,14 +94,28 @@ fun InactiveMonthlyCustomersScreen(
                 }
 
                 item {
-                    if (uiState.customers.isEmpty()) {
-                        Text("Nenhum cliente inativo")
+                    OutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = viewModel::updateSearchQuery,
+                        label = { Text("Pesquisar por placa ou nome") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+
+                item {
+                    if (filteredCustomers.isEmpty()) {
+                        if (uiState.searchQuery.isBlank()) {
+                            Text("Nenhum cliente inativo")
+                        } else {
+                            Text("Nenhum cliente encontrado para essa pesquisa")
+                        }
                     } else {
-                        Text("Clientes inativos: ${uiState.customers.size}")
+                        Text("Clientes inativos: ${filteredCustomers.size}")
                     }
                 }
 
-                items(uiState.customers) { customer ->
+                items(filteredCustomers) { customer ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors()
