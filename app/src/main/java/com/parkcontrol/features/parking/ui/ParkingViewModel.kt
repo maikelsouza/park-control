@@ -27,6 +27,9 @@ class ParkingViewModel(
     private val _licensePlate = mutableStateOf("")
     val licensePlate: State<String> = _licensePlate
 
+    private val _phone = mutableStateOf("")
+    val phone: State<String> = _phone
+
     private val _parkingRecords = mutableStateOf<List<ParkingRecord>>(emptyList())
     val parkingRecords: State<List<ParkingRecord>> = _parkingRecords
 
@@ -50,15 +53,21 @@ class ParkingViewModel(
         _licensePlate.value = plate.uppercase()
     }
 
+    fun updatePhone(phone: String) {
+        _phone.value = phone
+    }
+
     fun registerEntry() {
         if (_licensePlate.value.isNotEmpty()) {
             val newRecord = ParkingRecord(
                 licensePlate = _licensePlate.value,
+                phone = _phone.value.trim(),
                 entryTime = LocalDateTime.now(),
                 status = ParkingStatus.ESTACIONADO
             )
             _parkingRecords.value = listOf(newRecord) + _parkingRecords.value
             _licensePlate.value = ""
+            _phone.value = ""
         }
     }
 

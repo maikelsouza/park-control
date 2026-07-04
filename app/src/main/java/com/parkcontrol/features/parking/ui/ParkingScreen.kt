@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -42,6 +43,7 @@ import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.model.formatToBrazilian
 import com.parkcontrol.features.parking.domain.usecase.CalculateParkingPriceUseCase
+import androidx.compose.ui.text.input.KeyboardType
 
 private val PrimaryBlue = Color(0xFF0052CC)
 private val SuccessGreen = Color(0xFF28A745)
@@ -125,6 +127,21 @@ private fun VehiclePlateSection(
         singleLine = true,
         shape = RoundedCornerShape(8.dp),
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    OutlinedTextField(
+        value = viewModel.phone.value,
+        onValueChange = viewModel::updatePhone,
+        label = { Text("Telefone") },
+        singleLine = true,
+        shape = RoundedCornerShape(8.dp),
+        textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp)
@@ -303,6 +320,10 @@ private fun LastRecordSection(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            if (record.phone.isNotBlank()) {
+                RecordInfo("Telefone", record.phone)
+            }
 
             HorizontalDivider()
 
