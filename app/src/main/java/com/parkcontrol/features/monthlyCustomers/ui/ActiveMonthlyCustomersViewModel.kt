@@ -70,8 +70,7 @@ class ActiveMonthlyCustomersViewModel(
         isMonthly: Boolean,
         monthlyFee: String,
         dueDay: String,
-        plates: List<String>,
-        onSuccess: () -> Unit
+        plates: List<String>
     ) {
         val normalizedPlates = plates
             .map { it.trim().uppercase() }
@@ -134,8 +133,7 @@ class ActiveMonthlyCustomersViewModel(
                     updateMonthlyCustomerUseCase(customer)
                 }
 
-                _uiState.value = _uiState.value.copy(successMessage = "Cliente salvo com sucesso")
-                onSuccess()
+                _uiState.value = _uiState.value.copy(successMessage = if (customerId == null) "Cliente salvo com sucesso" else "Cliente atualizado com sucesso")
             } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = "Erro ao salvar cliente")
             }

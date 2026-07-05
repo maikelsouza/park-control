@@ -62,7 +62,9 @@ import java.util.Locale
 @Composable
 fun ActiveMonthlyCustomersScreen(
     onNavigate: (String) -> Unit,
-    currentRoute: String = AppRoutes.MonthlyCustomers.route
+    currentRoute: String = AppRoutes.MonthlyCustomers.route,
+    saveSuccessMessage: String? = null,
+    onSaveSuccessMessageShown: () -> Unit = {}
 ) {
     AppDrawerScaffold(
         currentRoute = currentRoute,
@@ -98,6 +100,13 @@ fun ActiveMonthlyCustomersScreen(
             uiState.successMessage?.let { message ->
                 snackbarHostState.showSnackbar(message)
                 viewModel.clearSuccessMessage()
+            }
+        }
+
+        LaunchedEffect(saveSuccessMessage) {
+            saveSuccessMessage?.let { message ->
+                snackbarHostState.showSnackbar(message)
+                onSaveSuccessMessageShown()
             }
         }
 
@@ -247,7 +256,8 @@ fun ActiveMonthlyCustomersScreen(
 fun MonthlyCustomerFormScreen(
     onNavigate: (String) -> Unit,
     customerId: Int?,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSaveSuccess: (String) -> Unit
 ) {
     AppDrawerScaffold(
         currentRoute = AppRoutes.MonthlyCustomers.route,
@@ -297,8 +307,10 @@ fun MonthlyCustomerFormScreen(
 
         LaunchedEffect(uiState.successMessage) {
             uiState.successMessage?.let { message ->
-                snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Short)
                 viewModel.clearSuccessMessage()
+                if (message.isNotBlank()) {
+                    onSaveSuccess(message)
+                }
             }
         }
 
@@ -433,8 +445,7 @@ fun MonthlyCustomerFormScreen(
                                 isMonthly = isMonthly,
                                 monthlyFee = monthlyFee,
                                 dueDay = dueDay,
-                                plates = plates.toList(),
-                                onSuccess = onBack
+                                plates = plates.toList()
                             )
                         },
                         enabled = !uiState.isLoading

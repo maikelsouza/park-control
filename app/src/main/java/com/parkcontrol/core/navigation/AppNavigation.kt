@@ -1,6 +1,8 @@
 package com.parkcontrol.core.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,6 +14,8 @@ import com.parkcontrol.features.monthlyCustomers.ui.InactiveMonthlyCustomersScre
 import com.parkcontrol.features.monthlyCustomers.ui.MonthlyCustomerFormScreen
 import com.parkcontrol.features.parking.ui.ParkingScreen
 import com.parkcontrol.features.settings.ui.SettingsScreen
+
+private const val MONTHLY_CUSTOMER_SAVE_RESULT_KEY = "monthly_customer_save_result"
 
 @Composable
 fun AppNavigation(
@@ -42,20 +46,36 @@ fun AppNavigation(
         }
 
         composable(AppRoutes.MonthlyCustomers.route) {
+            val saveResult by it.savedStateHandle
+                .getStateFlow(MONTHLY_CUSTOMER_SAVE_RESULT_KEY, null as String?)
+                .collectAsState()
+
             ActiveMonthlyCustomersScreen(
                 onNavigate = {
                     navController.navigate(it)
                 },
-                currentRoute = AppRoutes.MonthlyCustomers.route
+                currentRoute = AppRoutes.MonthlyCustomers.route,
+                saveSuccessMessage = saveResult,
+                onSaveSuccessMessageShown = {
+                    it.savedStateHandle[MONTHLY_CUSTOMER_SAVE_RESULT_KEY] = null
+                }
             )
         }
 
         composable(AppRoutes.MonthlyCustomersActive.route) {
+            val saveResult by it.savedStateHandle
+                .getStateFlow(MONTHLY_CUSTOMER_SAVE_RESULT_KEY, null as String?)
+                .collectAsState()
+
             ActiveMonthlyCustomersScreen(
                 onNavigate = {
                     navController.navigate(it)
                 },
-                currentRoute = AppRoutes.MonthlyCustomersActive.route
+                currentRoute = AppRoutes.MonthlyCustomersActive.route,
+                saveSuccessMessage = saveResult,
+                onSaveSuccessMessageShown = {
+                    it.savedStateHandle[MONTHLY_CUSTOMER_SAVE_RESULT_KEY] = null
+                }
             )
         }
 
@@ -85,7 +105,13 @@ fun AppNavigation(
             MonthlyCustomerFormScreen(
                 onNavigate = { navController.navigate(it) },
                 customerId = customerId,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onSaveSuccess = { message ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(MONTHLY_CUSTOMER_SAVE_RESULT_KEY, message)
+                    navController.popBackStack()
+                }
             )
         }
 
