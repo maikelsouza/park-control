@@ -31,13 +31,14 @@ class AppDatabaseMigrationTest {
         try {
             val sqliteDb = database.openHelper.writableDatabase
 
-            sqliteDb.query("SELECT `name`, `phone`, `monthlyFeeCents`, `dueDay`, `isActive` FROM `monthly_customers`").use { cursor ->
+            sqliteDb.query("SELECT `name`, `phone`, `isMonthly`, `monthlyFeeCents`, `dueDay`, `isActive` FROM `monthly_customers`").use { cursor ->
                 assertTrue(cursor.moveToFirst())
                 assertEquals("Cliente Legado", cursor.getString(0))
                 assertEquals("11999999999", cursor.getString(1))
                 assertEquals(0, cursor.getInt(2))
-                assertEquals(1, cursor.getInt(3))
+                assertEquals(0, cursor.getInt(3))
                 assertEquals(1, cursor.getInt(4))
+                assertEquals(1, cursor.getInt(5))
             }
 
             sqliteDb.query("SELECT `customerId`, `plate`, `isPrimary` FROM `customer_plates`").use { cursor ->
@@ -47,7 +48,7 @@ class AppDatabaseMigrationTest {
                 assertEquals(1, cursor.getInt(2))
             }
 
-            assertEquals(2, sqliteDb.version)
+            assertEquals(3, sqliteDb.version)
         } finally {
             database.close()
         }
@@ -61,12 +62,13 @@ class AppDatabaseMigrationTest {
         try {
             val sqliteDb = database.openHelper.writableDatabase
 
-            sqliteDb.query("SELECT `name`, `monthlyFeeCents`, `dueDay`, `isActive` FROM `monthly_customers`").use { cursor ->
+            sqliteDb.query("SELECT `name`, `isMonthly`, `monthlyFeeCents`, `dueDay`, `isActive` FROM `monthly_customers`").use { cursor ->
                 assertTrue(cursor.moveToFirst())
                 assertEquals("Cliente Atual", cursor.getString(0))
-                assertEquals(15990, cursor.getInt(1))
-                assertEquals(10, cursor.getInt(2))
-                assertEquals(1, cursor.getInt(3))
+                assertEquals(1, cursor.getInt(1))
+                assertEquals(15990, cursor.getInt(2))
+                assertEquals(10, cursor.getInt(3))
+                assertEquals(1, cursor.getInt(4))
             }
 
             sqliteDb.query("SELECT `customerId`, `plate`, `isPrimary` FROM `customer_plates`").use { cursor ->
@@ -76,7 +78,7 @@ class AppDatabaseMigrationTest {
                 assertEquals(1, cursor.getInt(2))
             }
 
-            assertEquals(2, sqliteDb.version)
+            assertEquals(3, sqliteDb.version)
         } finally {
             database.close()
         }
@@ -84,7 +86,7 @@ class AppDatabaseMigrationTest {
 
     private fun openMigratedDatabase(databaseName: String): AppDatabase {
         return Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
             .also { it.openHelper.writableDatabase }

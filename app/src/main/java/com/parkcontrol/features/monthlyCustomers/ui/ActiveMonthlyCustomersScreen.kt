@@ -22,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -161,8 +162,15 @@ fun ActiveMonthlyCustomersScreen(
                                     "Placa principal: $primaryPlate"
                                 },
                             )
-                            Text("Mensalidade: ${customer.monthlyFeeCents.toCurrency()}")
-                            Text("Vencimento: dia ${customer.dueDay}")
+                            if (customer.isMonthly) {
+                                Text("Mensalidade: ${customer.monthlyFeeCents.toCurrency()}")
+                                Text(
+                                    text = customer.dueDay?.let { "Vencimento: dia $it" }
+                                        ?: "Vencimento: nao informado"
+                                )
+                            } else {
+                                Text("Nao mensalista")
+                            }
 
                             if (customer.phone.isNotEmpty()) {
                                 Text("Telefone: ${customer.phone}")
@@ -255,8 +263,9 @@ fun MonthlyCustomerFormScreen(
 
         var name by rememberSaveable(customerId) { mutableStateOf("") }
         var phone by rememberSaveable(customerId) { mutableStateOf("") }
+        var isMonthly by rememberSaveable(customerId) { mutableStateOf(true) }
         var monthlyFee by rememberSaveable(customerId) { mutableStateOf("") }
-        var dueDay by rememberSaveable(customerId) { mutableStateOf("5") }
+        var dueDay by rememberSaveable(customerId) { mutableStateOf("") }
         val plates = remember(customerId) { mutableStateListOf("") }
         var didPrefill by rememberSaveable(customerId) { mutableStateOf(false) }
         var showInactivateDialog by remember { mutableStateOf(false) }
@@ -270,8 +279,9 @@ fun MonthlyCustomerFormScreen(
             if (customerId != null && customer != null && !didPrefill) {
                 name = customer.name
                 phone = customer.phone
+                isMonthly = customer.isMonthly
                 monthlyFee = customer.monthlyFeeCents.toMoneyInput()
-                dueDay = customer.dueDay.toString()
+                dueDay = customer.dueDay?.toString().orEmpty()
                 plates.clear()
                 plates.addAll(customer.plates.ifEmpty { listOf("") })
                 didPrefill = true
@@ -330,23 +340,42 @@ fun MonthlyCustomerFormScreen(
                     singleLine = true
                 )
 
-                OutlinedTextField(
-                    value = monthlyFee,
-                    onValueChange = { monthlyFee = it },
-                    label = { Text("Mensalidade fixa (ex: 250,00) *") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = isMonthly,
+                        onCheckedChange = { checked ->
+                            isMonthly = checked
+                            if (!checked) {
+                                monthlyFee = ""
+                                dueDay = ""
+                            }
+                        }
+                    )
+                    Text("É mensalista?")
+                }
 
-                OutlinedTextField(
-                    value = dueDay,
-                    onValueChange = { dueDay = it },
-                    label = { Text("Dia de vencimento (1-31) *") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
+                if (isMonthly) {
+                    OutlinedTextField(
+                        value = monthlyFee,
+                        onValueChange = { monthlyFee = it },
+                        label = { Text("Mensalidade fixa (ex: 250,00) *") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+
+                    OutlinedTextField(
+                        value = dueDay,
+                        onValueChange = { dueDay = it },
+                        label = { Text("Dia de vencimento (1-31) *") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
 
                 Text("Placas")
                 plates.forEachIndexed { index, plate ->
@@ -401,6 +430,7 @@ fun MonthlyCustomerFormScreen(
                                 customerId = customerId,
                                 name = name,
                                 phone = phone,
+                                isMonthly = isMonthly,
                                 monthlyFee = monthlyFee,
                                 dueDay = dueDay,
                                 plates = plates.toList(),
@@ -448,13 +478,15 @@ fun MonthlyCustomerFormScreen(
     }
 }
 
-private fun Int.toCurrency(): String {
+private fun Int?.toCurrency(): String {
+    if (this == null) return "Nao informado"
     val ptBrLocale = Locale.Builder().setLanguage("pt").setRegion("BR").build()
     val formatter = NumberFormat.getCurrencyInstance(ptBrLocale)
     return formatter.format(this / 100.0)
 }
 
-private fun Int.toMoneyInput(): String {
+private fun Int?.toMoneyInput(): String {
+    if (this == null) return ""
     return String.format(Locale.US, "%.2f", this / 100.0).replace('.', ',')
 }
 

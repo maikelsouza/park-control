@@ -139,8 +139,15 @@ fun InactiveMonthlyCustomersScreen(
                                     "Placa principal: $primaryPlate"
                                 }
                             )
-                            Text("Mensalidade: ${customer.monthlyFeeCents.toCurrency()}")
-                            Text("Vencimento: dia ${customer.dueDay}")
+                            if (customer.isMonthly) {
+                                Text("Mensalidade: ${customer.monthlyFeeCents.toCurrency()}")
+                                Text(
+                                    text = customer.dueDay?.let { "Vencimento: dia $it" }
+                                        ?: "Vencimento: nao informado"
+                                )
+                            } else {
+                                Text("Nao mensalista")
+                            }
 
                             if (customer.phone.isNotEmpty()) {
                                 Text("Telefone: ${customer.phone}")
@@ -193,7 +200,8 @@ fun InactiveMonthlyCustomersScreen(
     }
 }
 
-private fun Int.toCurrency(): String {
+private fun Int?.toCurrency(): String {
+    if (this == null) return "Nao informado"
     val ptBrLocale = Locale.Builder().setLanguage("pt").setRegion("BR").build()
     val formatter = NumberFormat.getCurrencyInstance(ptBrLocale)
     return formatter.format(this / 100.0)

@@ -67,6 +67,7 @@ class ActiveMonthlyCustomersViewModel(
         customerId: Int?,
         name: String,
         phone: String,
+        isMonthly: Boolean,
         monthlyFee: String,
         dueDay: String,
         plates: List<String>,
@@ -84,16 +85,30 @@ class ActiveMonthlyCustomersViewModel(
             return
         }
 
-        val monthlyFeeCents = parseFeeToCents(monthlyFee)
-        if (monthlyFeeCents == null) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Valor mensal invalido")
-            return
-        }
+        val monthlyFeeCents: Int?
+        val dueDayValue: Int?
 
-        val dueDayValue = dueDay.toIntOrNull()
-        if (dueDayValue == null || dueDayValue !in 1..31) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Vencimento deve ser entre 1 e 31")
-            return
+        if (isMonthly) {
+            monthlyFeeCents = if (monthlyFee.isBlank()) {
+                null
+            } else {
+                parseFeeToCents(monthlyFee) ?: run {
+                    _uiState.value = _uiState.value.copy(errorMessage = "Valor mensal invalido")
+                    return
+                }
+            }
+
+            dueDayValue = if (dueDay.isBlank()) {
+                null
+            } else {
+                dueDay.toIntOrNull()?.takeIf { it in 1..31 } ?: run {
+                    _uiState.value = _uiState.value.copy(errorMessage = "Vencimento deve ser entre 1 e 31")
+                    return
+                }
+            }
+        } else {
+            monthlyFeeCents = null
+            dueDayValue = null
         }
 
         viewModelScope.launch {
@@ -104,6 +119,7 @@ class ActiveMonthlyCustomersViewModel(
                     id = existing?.id ?: 0,
                     name = name.trim(),
                     phone = phone.trim(),
+                    isMonthly = isMonthly,
                     monthlyFeeCents = monthlyFeeCents,
                     dueDay = dueDayValue,
                     plates = normalizedPlates,

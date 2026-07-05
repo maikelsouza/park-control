@@ -12,7 +12,7 @@ import com.parkcontrol.features.monthlyCustomers.data.local.entity.MonthlyCustom
 
 @Database(
     entities = [MonthlyCustomerEntity::class, CustomerPlateEntity::class],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -124,6 +124,49 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `monthly_customers` ADD COLUMN `isMonthly` INTEGER NOT NULL DEFAULT 1")
+                db.execSQL(
+                    """
+                    UPDATE `monthly_customers`
+                    SET `isMonthly` = CASE WHEN `monthlyFeeCents` > 0 THEN 1 ELSE 0 END
+                    """.trimIndent()
+                )
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `monthly_customers_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `phone` TEXT NOT NULL,
+                        `isMonthly` INTEGER NOT NULL,
+                        `monthlyFeeCents` INTEGER,
+                        `dueDay` INTEGER,
+                        `isActive` INTEGER NOT NULL,
+                        `createdAt` INTEGER NOT NULL,
+                        `updatedAt` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+                    INSERT INTO `monthly_customers_new` (`id`, `name`, `phone`, `isMonthly`, `monthlyFeeCents`, `dueDay`, `isActive`, `createdAt`, `updatedAt`)
+                    SELECT `id`, `name`, `phone`, `isMonthly`, `monthlyFeeCents`, `dueDay`, `isActive`, `createdAt`, `updatedAt`
+                    FROM `monthly_customers`
+                    """.trimIndent()
+                )
+
+                db.execSQL("DROP TABLE `monthly_customers`")
+                db.execSQL("ALTER TABLE `monthly_customers_new` RENAME TO `monthly_customers`")
+            }
+        }
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -134,7 +177,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "parkcontrol_database"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance
