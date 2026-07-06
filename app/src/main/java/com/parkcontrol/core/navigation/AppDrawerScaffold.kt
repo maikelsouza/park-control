@@ -103,7 +103,7 @@ fun AppDrawerScaffold(
 
                 NavigationDrawerItem(
                     label = {
-                        Text("Clientes Mensais")
+                        Text("Clientes")
                     },
                     selected = currentRoute == AppRoutes.MonthlyCustomers.route || 
                                currentRoute == AppRoutes.MonthlyCustomersActive.route ||
@@ -114,7 +114,7 @@ fun AppDrawerScaffold(
                     icon = {
                         Icon(
                             imageVector = Icons.Rounded.Person,
-                            contentDescription = "Clientes Mensais"
+                            contentDescription = "Clientes"
                         )
                     }
                 )

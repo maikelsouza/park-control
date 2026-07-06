@@ -122,7 +122,7 @@ fun ActiveMonthlyCustomersScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Text("Clientes Mensais", style = MaterialTheme.typography.titleLarge)
+                    Text("Clientes", style = MaterialTheme.typography.titleLarge)
                 }
 
                 item {
@@ -331,7 +331,7 @@ fun MonthlyCustomerFormScreen(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (customerId == null) "Novo Cliente Mensal" else "Editar Cliente Mensal",
+                        text = if (customerId == null) "Novo Cliente" else "Editar Cliente",
                         style = MaterialTheme.typography.titleLarge
                     )
                 }

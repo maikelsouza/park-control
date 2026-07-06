@@ -90,7 +90,7 @@ fun InactiveMonthlyCustomersScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Text("Clientes Mensais Inativos", style = MaterialTheme.typography.titleLarge)
+                    Text("Clientes Inativos", style = MaterialTheme.typography.titleLarge)
                 }
 
                 item {
