@@ -48,7 +48,12 @@ class AppDatabaseMigrationTest {
                 assertEquals(1, cursor.getInt(2))
             }
 
-            assertEquals(3, sqliteDb.version)
+            sqliteDb.query("SELECT COUNT(*) FROM `parking_records`").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(0, cursor.getInt(0))
+            }
+
+            assertEquals(5, sqliteDb.version)
         } finally {
             database.close()
         }
@@ -78,7 +83,12 @@ class AppDatabaseMigrationTest {
                 assertEquals(1, cursor.getInt(2))
             }
 
-            assertEquals(3, sqliteDb.version)
+            sqliteDb.query("SELECT COUNT(*) FROM `parking_records`").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(0, cursor.getInt(0))
+            }
+
+            assertEquals(5, sqliteDb.version)
         } finally {
             database.close()
         }
@@ -86,7 +96,12 @@ class AppDatabaseMigrationTest {
 
     private fun openMigratedDatabase(databaseName: String): AppDatabase {
         return Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_4_5
+            )
             .allowMainThreadQueries()
             .build()
             .also { it.openHelper.writableDatabase }

@@ -8,6 +8,11 @@ import com.parkcontrol.core.domain.usecase.GetParkingConfigUseCase
 import com.parkcontrol.core.domain.usecase.SaveParkingConfigUseCase
 import com.parkcontrol.features.monthlyCustomers.data.repository.MonthlyCustomerRepositoryImpl
 import com.parkcontrol.features.monthlyCustomers.domain.repository.MonthlyCustomerRepository
+import com.parkcontrol.features.parking.data.repository.ParkingRepositoryImpl
+import com.parkcontrol.features.parking.domain.repository.ParkingRepository
+import com.parkcontrol.features.parking.domain.usecase.ObserveParkingRecordsUseCase
+import com.parkcontrol.features.parking.domain.usecase.SaveParkingRecordUseCase
+import com.parkcontrol.features.parking.domain.usecase.UpdateParkingRecordUseCase
 
 /**
  * Factory for creating core dependencies.
@@ -18,6 +23,7 @@ object CoreDependencies {
 
     private var parkingConfigRepository: ParkingConfigRepository? = null
     private var monthlyCustomerRepository: MonthlyCustomerRepository? = null
+    private var parkingRepository: ParkingRepository? = null
     private var appDatabase: AppDatabase? = null
 
     /**
@@ -49,6 +55,15 @@ object CoreDependencies {
         return monthlyCustomerRepository!!
     }
 
+    fun getParkingRepository(context: Context): ParkingRepository {
+        if (parkingRepository == null) {
+            val database = getAppDatabase(context)
+            val dao = database.parkingRecordDao()
+            parkingRepository = ParkingRepositoryImpl(dao)
+        }
+        return parkingRepository!!
+    }
+
     /**
      * Create a new instance of GetParkingConfigUseCase.
      */
@@ -61,6 +76,18 @@ object CoreDependencies {
      */
     fun createSaveParkingConfigUseCase(context: Context): SaveParkingConfigUseCase {
         return SaveParkingConfigUseCase(getParkingConfigRepository(context))
+    }
+
+    fun createObserveParkingRecordsUseCase(context: Context): ObserveParkingRecordsUseCase {
+        return ObserveParkingRecordsUseCase(getParkingRepository(context))
+    }
+
+    fun createSaveParkingRecordUseCase(context: Context): SaveParkingRecordUseCase {
+        return SaveParkingRecordUseCase(getParkingRepository(context))
+    }
+
+    fun createUpdateParkingRecordUseCase(context: Context): UpdateParkingRecordUseCase {
+        return UpdateParkingRecordUseCase(getParkingRepository(context))
     }
 }
 

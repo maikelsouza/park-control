@@ -9,15 +9,19 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.parkcontrol.features.monthlyCustomers.data.local.dao.MonthlyCustomerDao
 import com.parkcontrol.features.monthlyCustomers.data.local.entity.CustomerPlateEntity
 import com.parkcontrol.features.monthlyCustomers.data.local.entity.MonthlyCustomerEntity
+import com.parkcontrol.features.parking.data.local.dao.ParkingRecordDao
+import com.parkcontrol.features.parking.data.local.entity.ParkingRecordEntity
 
 @Database(
-    entities = [MonthlyCustomerEntity::class, CustomerPlateEntity::class],
-    version = 4,
+    entities = [MonthlyCustomerEntity::class, CustomerPlateEntity::class, ParkingRecordEntity::class],
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun monthlyCustomerDao(): MonthlyCustomerDao
+
+    abstract fun parkingRecordDao(): ParkingRecordDao
 
     companion object {
 
@@ -167,6 +171,33 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `parking_records` (
+                        `id` TEXT NOT NULL,
+                        `customerId` INTEGER,
+                        `licensePlate` TEXT NOT NULL,
+                        `phone` TEXT NOT NULL,
+                        `entryTimeMillis` INTEGER NOT NULL,
+                        `exitTimeMillis` INTEGER,
+                        `status` TEXT NOT NULL,
+                        `amountPaid` REAL,
+                        `createdAt` INTEGER NOT NULL,
+                        `updatedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`customerId`) REFERENCES `monthly_customers`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parking_records_customerId` ON `parking_records` (`customerId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parking_records_licensePlate` ON `parking_records` (`licensePlate`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parking_records_status` ON `parking_records` (`status`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parking_records_entryTimeMillis` ON `parking_records` (`entryTimeMillis`)")
+            }
+        }
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -177,7 +208,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "parkcontrol_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                 INSTANCE = instance
                 instance

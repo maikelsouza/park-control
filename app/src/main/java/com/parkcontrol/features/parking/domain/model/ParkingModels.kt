@@ -6,6 +6,7 @@ import java.util.UUID
 
 data class ParkingRecord(
     val id: String = UUID.randomUUID().toString(),
+    val customerId: Int? = null,
     val licensePlate: String,
     val phone: String = "",
     val entryTime: LocalDateTime,

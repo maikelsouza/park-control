@@ -23,6 +23,18 @@ class ParkingViewModel(
         CoreDependencies.createGetParkingConfigUseCase(application)
     }
 
+    private val observeParkingRecordsUseCase by lazy {
+        CoreDependencies.createObserveParkingRecordsUseCase(application)
+    }
+
+    private val saveParkingRecordUseCase by lazy {
+        CoreDependencies.createSaveParkingRecordUseCase(application)
+    }
+
+    private val updateParkingRecordUseCase by lazy {
+        CoreDependencies.createUpdateParkingRecordUseCase(application)
+    }
+
     // Initialize state variables before init block
     private val _licensePlate = mutableStateOf("")
     val licensePlate: State<String> = _licensePlate
@@ -47,6 +59,12 @@ class ParkingViewModel(
                 _pricePerHour.value = String.format(java.util.Locale.US, "%.2f", config.pricePerHour)
             }
         }
+
+        viewModelScope.launch {
+            observeParkingRecordsUseCase().collect { records ->
+                _parkingRecords.value = records
+            }
+        }
     }
 
     fun updateLicensePlate(plate: String) {
@@ -58,17 +76,22 @@ class ParkingViewModel(
     }
 
     fun registerEntry() {
-        if (_licensePlate.value.isNotEmpty()) {
-            val newRecord = ParkingRecord(
-                licensePlate = _licensePlate.value,
-                phone = _phone.value.trim(),
-                entryTime = LocalDateTime.now(),
-                status = ParkingStatus.ESTACIONADO
-            )
-            _parkingRecords.value = listOf(newRecord) + _parkingRecords.value
-            _licensePlate.value = ""
-            _phone.value = ""
+        val normalizedPlate = _licensePlate.value.trim().uppercase()
+        if (normalizedPlate.isEmpty()) return
+
+        val newRecord = ParkingRecord(
+            licensePlate = normalizedPlate,
+            phone = _phone.value.trim(),
+            entryTime = LocalDateTime.now(),
+            status = ParkingStatus.ESTACIONADO
+        )
+
+        viewModelScope.launch {
+            saveParkingRecordUseCase(newRecord)
         }
+
+        _licensePlate.value = ""
+        _phone.value = ""
     }
 
     fun registerExit(record: ParkingRecord) {
@@ -94,12 +117,9 @@ class ParkingViewModel(
             amountPaid = amountPaid
         )
 
-        _parkingRecords.value = _parkingRecords.value.map {
-                if (it.id == record.id)
-                    updatedRecord
-                else
-                    it
-            }
+        viewModelScope.launch {
+            updateParkingRecordUseCase(updatedRecord)
+        }
     }
 
     fun registerLastExit() {
