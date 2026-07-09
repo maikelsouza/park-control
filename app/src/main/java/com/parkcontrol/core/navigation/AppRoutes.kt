@@ -8,6 +8,8 @@ sealed class AppRoutes(
 
     data object Parking : AppRoutes("parking")
 
+    data object ParkedVehicles : AppRoutes("parked_vehicles")
+
     data object MonthlyCustomers : AppRoutes("monthly_customers")
 
     data object MonthlyCustomersActive : AppRoutes("monthly_customers/active")

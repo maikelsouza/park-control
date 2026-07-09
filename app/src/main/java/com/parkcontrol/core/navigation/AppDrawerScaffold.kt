@@ -3,6 +3,7 @@ package com.parkcontrol.core.navigation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.HowToReg
 import androidx.compose.material.icons.rounded.Info
@@ -98,6 +99,25 @@ fun AppDrawerScaffold(
                         Icon(
                             imageVector = Icons.Rounded.LocalParking,
                             contentDescription = "Estacionar"
+                        )
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = {
+                        Text("Listagem de veiculos")
+                    },
+                    selected = currentRoute == AppRoutes.ParkedVehicles.route,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        onNavigate(AppRoutes.ParkedVehicles.route)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.List,
+                            contentDescription = "Listagem de veiculos"
                         )
                     }
                 )

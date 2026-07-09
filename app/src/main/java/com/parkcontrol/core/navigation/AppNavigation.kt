@@ -13,6 +13,7 @@ import com.parkcontrol.features.monthlyCustomers.ui.ActiveMonthlyCustomersScreen
 import com.parkcontrol.features.monthlyCustomers.ui.InactiveMonthlyCustomersScreen
 import com.parkcontrol.features.monthlyCustomers.ui.MonthlyCustomerFormScreen
 import com.parkcontrol.features.about.ui.AboutScreen
+import com.parkcontrol.features.parking.ui.ParkedVehiclesScreen
 import com.parkcontrol.features.parking.ui.ParkingScreen
 import com.parkcontrol.features.settings.ui.SettingsScreen
 
@@ -40,6 +41,14 @@ fun AppNavigation(
 
         composable(AppRoutes.Parking.route){
             ParkingScreen(
+                onNavigate = {
+                    navController.navigate(it)
+                }
+            )
+        }
+
+        composable(AppRoutes.ParkedVehicles.route) {
+            ParkedVehiclesScreen(
                 onNavigate = {
                     navController.navigate(it)
                 }
