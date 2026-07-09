@@ -45,6 +45,12 @@ class ParkingViewModel(
     private val _parkingRecords = mutableStateOf<List<ParkingRecord>>(emptyList())
     val parkingRecords: State<List<ParkingRecord>> = _parkingRecords
 
+    private val _selectedRecord = mutableStateOf<ParkingRecord?>(null)
+    val selectedRecord: State<ParkingRecord?> = _selectedRecord
+
+    private val _openRecordSuggestions = mutableStateOf<List<ParkingRecord>>(emptyList())
+    val openRecordSuggestions: State<List<ParkingRecord>> = _openRecordSuggestions
+
     private val _first30MinutesPrice = mutableStateOf("5.00")
     val first30MinutesPrice: State<String> = _first30MinutesPrice
 
@@ -63,16 +69,34 @@ class ParkingViewModel(
         viewModelScope.launch {
             observeParkingRecordsUseCase().collect { records ->
                 _parkingRecords.value = records
+                syncSelectedRecord(records)
+                refreshOpenRecordSuggestions()
             }
         }
     }
 
     fun updateLicensePlate(plate: String) {
         _licensePlate.value = plate.uppercase()
+        refreshOpenRecordSuggestions()
     }
 
     fun updatePhone(phone: String) {
         _phone.value = phone
+        refreshOpenRecordSuggestions()
+    }
+
+    fun selectSuggestedRecord(record: ParkingRecord) {
+        _selectedRecord.value = record
+        _licensePlate.value = record.licensePlate
+        _phone.value = record.phone
+        refreshOpenRecordSuggestions()
+    }
+
+    fun onScreenOpened() {
+        _selectedRecord.value = null
+        _licensePlate.value = ""
+        _phone.value = ""
+        refreshOpenRecordSuggestions()
     }
 
     fun registerEntry() {
@@ -86,12 +110,15 @@ class ParkingViewModel(
             status = ParkingStatus.ESTACIONADO
         )
 
+        _selectedRecord.value = newRecord
+
         viewModelScope.launch {
             saveParkingRecordUseCase(newRecord)
         }
 
         _licensePlate.value = ""
         _phone.value = ""
+        refreshOpenRecordSuggestions()
     }
 
     fun registerExit(record: ParkingRecord) {
@@ -123,15 +150,39 @@ class ParkingViewModel(
     }
 
     fun registerLastExit() {
-        val lastRecord = getLastRecord()
-
-        if (lastRecord != null &&
-            lastRecord.status == ParkingStatus.ESTACIONADO
-        ) {
-            registerExit(lastRecord)
+        val selected = _selectedRecord.value
+        if (selected?.status == ParkingStatus.ESTACIONADO) {
+            registerExit(selected)
         }
     }
 
     fun getLastRecord(): ParkingRecord? = _parkingRecords.value.firstOrNull()
+
+    private fun refreshOpenRecordSuggestions() {
+        val plateFilter = _licensePlate.value.trim().uppercase()
+        val phoneFilter = _phone.value.trim()
+
+        if (plateFilter.isEmpty() && phoneFilter.isEmpty()) {
+            _openRecordSuggestions.value = emptyList()
+            return
+        }
+
+        _openRecordSuggestions.value = _parkingRecords.value
+            .asSequence()
+            .filter { it.status == ParkingStatus.ESTACIONADO }
+            .filter { record ->
+                val matchesPlate = plateFilter.isEmpty() ||
+                    record.licensePlate.uppercase().contains(plateFilter)
+                val matchesPhone = phoneFilter.isEmpty() ||
+                    record.phone.contains(phoneFilter, ignoreCase = true)
+                matchesPlate && matchesPhone
+            }
+            .toList()
+    }
+
+    private fun syncSelectedRecord(records: List<ParkingRecord>) {
+        val selectedId = _selectedRecord.value?.id ?: return
+        _selectedRecord.value = records.firstOrNull { it.id == selectedId }
+    }
 
 }

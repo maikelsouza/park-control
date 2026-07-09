@@ -3,6 +3,7 @@ package com.parkcontrol.features.parking.ui
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -27,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -67,6 +70,11 @@ fun ParkingScreen(
              calculateParkingPriceUseCase = CalculateParkingPriceUseCase()
          )
          val viewModel: ParkingViewModel = viewModel(factory = factory)
+
+         LaunchedEffect(viewModel) {
+             viewModel.onScreenOpened()
+         }
+
          ParkingEntryScreen(
             viewModel = viewModel,
             modifier = Modifier.padding(paddingValues)
@@ -80,7 +88,8 @@ fun ParkingEntryScreen(
     modifier: Modifier = Modifier
 ) {
 
-    val lastRecord = viewModel.getLastRecord()
+    val selectedRecord = viewModel.selectedRecord.value
+    val suggestions = viewModel.openRecordSuggestions.value
 
     LazyColumn(
         modifier = modifier
@@ -94,11 +103,18 @@ fun ParkingEntryScreen(
         }
 
         item {
-            ActionButtonsSection(viewModel, lastRecord)
+            SearchOpenRecordsSection(
+                viewModel = viewModel,
+                suggestions = suggestions
+            )
         }
 
         item {
-            LastRecordSection(lastRecord)
+            ActionButtonsSection(viewModel, selectedRecord)
+        }
+
+        item {
+            LastRecordSection(selectedRecord)
         }
 
         item {
@@ -222,7 +238,7 @@ private fun VehiclePlateSection(
 @Composable
 private fun ActionButtonsSection(
     viewModel: ParkingViewModel,
-    lastRecord: Any?
+    selectedRecord: ParkingRecord?
 ) {
 
     Row(
@@ -249,6 +265,7 @@ private fun ActionButtonsSection(
 
         Button(
             onClick = viewModel::registerLastExit,
+            enabled = selectedRecord?.status == ParkingStatus.ESTACIONADO,
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp),
@@ -267,12 +284,93 @@ private fun ActionButtonsSection(
 }
 
 @Composable
+private fun SearchOpenRecordsSection(
+    viewModel: ParkingViewModel,
+    suggestions: List<ParkingRecord>
+) {
+    val hasQuery = viewModel.licensePlate.value.isNotBlank() ||
+        viewModel.phone.value.isNotBlank()
+
+    if (!hasQuery) {
+        return
+    }
+
+    Text(
+        text = "Veículos sem saída registrada",
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    if (suggestions.isEmpty()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFF0F0F0)
+            )
+        ) {
+            Text(
+                text = "Nenhum veiculo estacionado encontrado",
+                textAlign = TextAlign.Center,
+                color = Color.Gray,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+            )
+        }
+        return
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(suggestions, key = { it.id }) { record ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.selectSuggestedRecord(record) },
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "🚗 ${record.licensePlate}",
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (record.phone.isNotBlank()) {
+                        Text(
+                            text = "📞 ${record.phone}",
+                            color = Color.Gray,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        text = "Entrada: ${record.entryTime.formatToBrazilian()}",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun LastRecordSection(
     record: ParkingRecord?
 ) {
 
     Text(
-        text = "Último Registro",
+        text = "Registro selecionado",
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold
     )
@@ -288,7 +386,7 @@ private fun LastRecordSection(
             )
         ) {
             Text(
-                text = "Nenhum registro",
+                text = "Nenhum registro selecionado",
                 textAlign = TextAlign.Center,
                 color = Color.Gray,
                 modifier = Modifier
@@ -401,7 +499,7 @@ private fun RecordInfo(
 private fun InfoSection() {
 
     Text(
-        text = "ℹ️ Para registrar entrada clique em ENTRADA.\nPara registrar saída clique em SAÍDA.",
+        text = "ℹ️ Digite placa ou telefone para buscar os estacionados sem baixa.\nSelecione um registro para dar saída.",
         fontSize = 12.sp,
         color = Color.Gray,
         modifier = Modifier
