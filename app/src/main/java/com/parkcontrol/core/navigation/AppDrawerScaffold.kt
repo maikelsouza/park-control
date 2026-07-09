@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.HowToReg
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocalParking
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.PersonOff
@@ -176,6 +177,25 @@ fun AppDrawerScaffold(
                         Icon(
                             imageVector = Icons.Rounded.Settings,
                             contentDescription = "Configurações"
+                        )
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = {
+                        Text("Sobre")
+                    },
+                    selected = currentRoute == AppRoutes.About.route,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        onNavigate(AppRoutes.About.route)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Info,
+                            contentDescription = "Sobre"
                         )
                     }
                 )

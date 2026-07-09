@@ -27,4 +27,6 @@ sealed class AppRoutes(
     }
 
     data object Settings : AppRoutes("settings")
+
+    data object About : AppRoutes("about")
 }
