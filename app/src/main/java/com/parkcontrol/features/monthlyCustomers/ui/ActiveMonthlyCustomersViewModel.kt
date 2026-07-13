@@ -84,6 +84,21 @@ class ActiveMonthlyCustomersViewModel(
             return
         }
 
+        val normalizedName = name.trim()
+        val existingPlates = _uiState.value.customers
+            .asSequence()
+            .filter { customer -> customer.id != customerId }
+            .flatMap { customer -> customer.plates.asSequence() }
+            .map { plate -> plate.trim().uppercase() }
+            .toSet()
+        val duplicatePlate = normalizedPlates.firstOrNull { plate -> plate in existingPlates }
+        if (duplicatePlate != null) {
+            _uiState.value = _uiState.value.copy(
+                errorMessage = "Placa ja cadastrada: $duplicatePlate"
+            )
+            return
+        }
+
         val monthlyFeeCents: Int?
         val dueDayValue: Int?
 
@@ -116,7 +131,7 @@ class ActiveMonthlyCustomersViewModel(
                 val now = System.currentTimeMillis()
                 val customer = MonthlyCustomer(
                     id = existing?.id ?: 0,
-                    name = name.trim(),
+                    name = normalizedName,
                     phone = phone.trim(),
                     isMonthly = isMonthly,
                     monthlyFeeCents = monthlyFeeCents,
