@@ -8,9 +8,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -322,108 +322,112 @@ fun MonthlyCustomerFormScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(16.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Voltar")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (customerId == null) "Novo Cliente" else "Editar Cliente",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nome *") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Telefone") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Checkbox(
-                        checked = isMonthly,
-                        onCheckedChange = { checked ->
-                            isMonthly = checked
-                            if (!checked) {
-                                monthlyFee = ""
-                                dueDay = ""
-                            }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = onBack) {
+                            Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Voltar")
                         }
-                    )
-                    Text("É mensalista?")
-                }
-
-                if (isMonthly) {
-                    OutlinedTextField(
-                        value = monthlyFee,
-                        onValueChange = { monthlyFee = it },
-                        label = { Text("Mensalidade fixa (ex: 250,00) *") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (customerId == null) "Novo Cliente" else "Editar Cliente",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
 
                     OutlinedTextField(
-                        value = dueDay,
-                        onValueChange = { dueDay = it },
-                        label = { Text("Dia de vencimento (1-31) *") },
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nome *") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        singleLine = true
                     )
-                }
 
-                Text("Placas")
-                plates.forEachIndexed { index, plate ->
+                    OutlinedTextField(
+                        value = phone,
+                        onValueChange = { phone = it },
+                        label = { Text("Telefone") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
+                        Checkbox(
+                            checked = isMonthly,
+                            onCheckedChange = { checked ->
+                                isMonthly = checked
+                                if (!checked) {
+                                    monthlyFee = ""
+                                    dueDay = ""
+                                }
+                            }
+                        )
+                        Text("É mensalista?")
+                    }
+
+                    if (isMonthly) {
                         OutlinedTextField(
-                            value = plate,
-                            onValueChange = { plates[index] = it },
-                            label = {
-                                Text(
-                                    if (index == 0) {
-                                        "Placa principal *"
-                                    } else {
-                                        "Placa ${index + 1}"
-                                    }
-                                )
-                            },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true
+                            value = monthlyFee,
+                            onValueChange = { monthlyFee = it },
+                            label = { Text("Mensalidade fixa (ex: 250,00) *") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
 
-                        if (plates.size > 1) {
-                            TextButton(onClick = { plates.removeAt(index) }) {
-                                Text("Remover")
+                        OutlinedTextField(
+                            value = dueDay,
+                            onValueChange = { dueDay = it },
+                            label = { Text("Dia de vencimento (1-31) *") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
+
+                    Text("Placas")
+                    plates.forEachIndexed { index, plate ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = plate,
+                                onValueChange = { plates[index] = it },
+                                label = {
+                                    Text(
+                                        if (index == 0) {
+                                            "Placa principal *"
+                                        } else {
+                                            "Placa ${index + 1}"
+                                        }
+                                    )
+                                },
+                                modifier = Modifier.weight(1f),
+                                singleLine = true
+                            )
+
+                            if (plates.size > 1) {
+                                TextButton(onClick = { plates.removeAt(index) }) {
+                                    Text("Remover")
+                                }
                             }
                         }
                     }
-                }
 
-                OutlinedButton(onClick = { plates.add("") }) {
-                    Text("Adicionar placa")
+                    OutlinedButton(onClick = { plates.add("") }) {
+                        Text("Adicionar placa")
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

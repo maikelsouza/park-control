@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
@@ -18,11 +20,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,10 +57,13 @@ fun SettingsEntryScreen(
     onNavigate: (String) -> Unit = {}
 ) {
 
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(colorScheme.background)
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
 
@@ -72,7 +77,7 @@ fun SettingsEntryScreen(
 
         Text(
             text = "Configure os valores cobrados no estacionamento",
-            color = Color.Gray
+            color = colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -97,7 +102,7 @@ fun SettingsEntryScreen(
 
                 Text(
                     text = "Valor fixo para permanência de até 30 minutos.",
-                    color = Color.Gray
+                    color = colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -118,6 +123,7 @@ fun SettingsEntryScreen(
         // Card hora
         Card(
             shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
             modifier = Modifier.fillMaxWidth()
         ) {
 
@@ -135,7 +141,7 @@ fun SettingsEntryScreen(
 
                 Text(
                     text = "Cobrança por hora cheia após os primeiros 30 minutos.",
-                    color = Color.Gray
+                    color = colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -156,7 +162,7 @@ fun SettingsEntryScreen(
         // Resumo
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFEAF3FF)
+                containerColor = colorScheme.primaryContainer
             ),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -167,7 +173,7 @@ fun SettingsEntryScreen(
 
                 Text(
                     text = "Resumo",
-                    color = Color(0xFF0052CC),
+                    color = colorScheme.onPrimaryContainer,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -204,7 +210,7 @@ fun SettingsEntryScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF0052CC)
+                containerColor = colorScheme.primary
             )
         ) {
 
@@ -217,7 +223,8 @@ fun SettingsEntryScreen(
 
             Text(
                 text = "SALVAR CONFIGURAÇÕES",
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = colorScheme.onPrimary
             )
         }
     }

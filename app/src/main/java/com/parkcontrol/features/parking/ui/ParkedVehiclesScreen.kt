@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,6 +62,7 @@ private fun ParkedVehiclesContent(
     viewModel: ParkedVehiclesViewModel,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val plateFilter by viewModel.plateFilter
     val startDateFilter by viewModel.startDateFilter
     val endDateFilter by viewModel.endDateFilter
@@ -84,7 +84,7 @@ private fun ParkedVehiclesContent(
         Text(
             text = "Exibe os que estao estacionados e os que ja finalizaram",
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
+            color = colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -143,7 +143,7 @@ private fun ParkedVehiclesContent(
         filterError?.let { message ->
             Text(
                 text = message,
-                color = Color(0xFFB00020),
+                color = colorScheme.error,
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -180,9 +180,10 @@ private fun ParkedVehiclesContent(
 
 @Composable
 private fun ParkedVehicleCard(record: ParkingRecord) {
+    val colorScheme = MaterialTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -191,35 +192,55 @@ private fun ParkedVehicleCard(record: ParkingRecord) {
         ) {
             Text(
                 text = "Placa: ${record.licensePlate}",
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = colorScheme.onSurface
             )
 
-            Text(text = "Entrada: ${record.entryTime.formatToBrazilian()}")
+            Text(
+                text = "Entrada: ${record.entryTime.formatToBrazilian()}",
+                color = colorScheme.onSurfaceVariant
+            )
 
             val statusLabel = if (record.status == ParkingStatus.ESTACIONADO) {
                 "Estacionado"
             } else {
                 "Finalizado"
             }
-            Text(text = "Status: $statusLabel")
+            Text(
+                text = "Status: $statusLabel",
+                color = colorScheme.onSurfaceVariant
+            )
 
             record.exitTime?.let {
-                Text(text = "Saida: ${it.formatToBrazilian()}")
+                Text(
+                    text = "Saida: ${it.formatToBrazilian()}",
+                    color = colorScheme.onSurfaceVariant
+                )
             }
 
             record.amountPaid?.let {
-                Text(text = "Valor: R$ %.2f".format(it))
+                Text(
+                    text = "Valor: R$ %.2f".format(it),
+                    color = colorScheme.onSurfaceVariant
+                )
             }
 
             if (record.phone.isNotBlank()) {
-                Text(text = "Telefone: ${record.phone}")
+                Text(
+                    text = "Telefone: ${record.phone}",
+                    color = colorScheme.onSurfaceVariant
+                )
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Tempo estacionado:")
+                Text(
+                    text = "Tempo estacionado:",
+                    color = colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = formatDuration(record.entryTime),
+                    color = colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
             }

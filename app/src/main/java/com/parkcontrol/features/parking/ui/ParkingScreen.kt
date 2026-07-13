@@ -25,6 +25,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,7 +49,6 @@ import com.parkcontrol.features.parking.domain.model.formatToBrazilian
 import com.parkcontrol.features.parking.domain.usecase.CalculateParkingPriceUseCase
 import androidx.compose.ui.text.input.KeyboardType
 
-private val PrimaryBlue = Color(0xFF0052CC)
 private val SuccessGreen = Color(0xFF28A745)
 
 
@@ -127,6 +127,7 @@ fun ParkingEntryScreen(
 private fun VehiclePlateSection(
     viewModel: ParkingViewModel
 ) {
+    val colorScheme = MaterialTheme.colorScheme
 
     Text(
         text = "Placa do Veículo",
@@ -171,11 +172,11 @@ private fun VehiclePlateSection(
             .height(100.dp)
             .border(
                 width = 3.dp,
-                color = PrimaryBlue,
+                color = colorScheme.primary,
                 shape = RoundedCornerShape(8.dp)
             )
             .background(
-                color = Color.White,
+                color = colorScheme.surface,
                 shape = RoundedCornerShape(8.dp)
             ),
         contentAlignment = Alignment.Center
@@ -198,7 +199,7 @@ private fun VehiclePlateSection(
                         .width(50.dp)
                         .height(40.dp)
                         .background(
-                            PrimaryBlue,
+                            colorScheme.primary,
                             RoundedCornerShape(4.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -212,6 +213,7 @@ private fun VehiclePlateSection(
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
+                    color = colorScheme.onSurface,
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 8.dp)
@@ -226,7 +228,7 @@ private fun VehiclePlateSection(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .background(
-                        Color.LightGray,
+                        colorScheme.surfaceVariant,
                         RoundedCornerShape(2.dp)
                     )
                     .padding(horizontal = 4.dp, vertical = 2.dp)
@@ -240,6 +242,7 @@ private fun ActionButtonsSection(
     viewModel: ParkingViewModel,
     selectedRecord: ParkingRecord?
 ) {
+    val colorScheme = MaterialTheme.colorScheme
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -252,14 +255,14 @@ private fun ActionButtonsSection(
                 .weight(1f)
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = PrimaryBlue
+                containerColor = colorScheme.primary
             ),
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(
                 "🚗 ENTRADA",
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = colorScheme.onPrimary
             )
         }
 
@@ -288,6 +291,7 @@ private fun SearchOpenRecordsSection(
     viewModel: ParkingViewModel,
     suggestions: List<ParkingRecord>
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val hasQuery = viewModel.licensePlate.value.isNotBlank() ||
         viewModel.phone.value.isNotBlank()
 
@@ -307,13 +311,13 @@ private fun SearchOpenRecordsSection(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFF0F0F0)
+                containerColor = colorScheme.surfaceVariant
             )
         ) {
             Text(
                 text = "Nenhum veiculo estacionado encontrado",
                 textAlign = TextAlign.Center,
-                color = Color.Gray,
+                color = colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp)
@@ -334,7 +338,7 @@ private fun SearchOpenRecordsSection(
                     .fillMaxWidth()
                     .clickable { viewModel.selectSuggestedRecord(record) },
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = colorScheme.surface
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
@@ -349,13 +353,13 @@ private fun SearchOpenRecordsSection(
                     if (record.phone.isNotBlank()) {
                         Text(
                             text = "📞 ${record.phone}",
-                            color = Color.Gray,
+                            color = colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
                     Text(
                         text = "Entrada: ${record.entryTime.formatToBrazilian()}",
-                        color = Color.Gray,
+                        color = colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                 }
@@ -368,6 +372,7 @@ private fun SearchOpenRecordsSection(
 private fun LastRecordSection(
     record: ParkingRecord?
 ) {
+    val colorScheme = MaterialTheme.colorScheme
 
     Text(
         text = "Registro selecionado",
@@ -382,13 +387,13 @@ private fun LastRecordSection(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFF0F0F0)
+                containerColor = colorScheme.surfaceVariant
             )
         ) {
             Text(
                 text = "Nenhum registro selecionado",
                 textAlign = TextAlign.Center,
-                color = Color.Gray,
+                color = colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -401,7 +406,7 @@ private fun LastRecordSection(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
@@ -443,26 +448,20 @@ private fun LastRecordSection(
 
                 Text(
                     text = "Status",
-                    color = Color.Gray
+                    color = colorScheme.onSurfaceVariant
                 )
 
                 val parked = record.status == ParkingStatus.ESTACIONADO
 
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = if (parked)
-                        Color(0xFFE3F2FD)
-                    else
-                        Color(0xFFC8E6C9)
+                    color = if (parked) colorScheme.primaryContainer else colorScheme.secondaryContainer
                 ) {
                     Text(
                         text = record.status.name,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (parked)
-                            PrimaryBlue
-                        else
-                            SuccessGreen,
+                        color = if (parked) colorScheme.onPrimaryContainer else colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 4.dp
@@ -479,12 +478,13 @@ private fun RecordInfo(
     label: String,
     value: String
 ) {
+    val colorScheme = MaterialTheme.colorScheme
 
     Column {
         Text(
             text = "$label:",
             fontSize = 12.sp,
-            color = Color.Gray
+            color = colorScheme.onSurfaceVariant
         )
 
         Text(
@@ -497,15 +497,16 @@ private fun RecordInfo(
 
 @Composable
 private fun InfoSection() {
+    val colorScheme = MaterialTheme.colorScheme
 
     Text(
         text = "ℹ️ Digite placa ou telefone para buscar os estacionados sem baixa.\nSelecione um registro para dar saída.",
         fontSize = 12.sp,
-        color = Color.Gray,
+        color = colorScheme.onPrimaryContainer,
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                Color(0xFFE3F2FD),
+                colorScheme.primaryContainer,
                 RoundedCornerShape(8.dp)
             )
             .padding(12.dp)

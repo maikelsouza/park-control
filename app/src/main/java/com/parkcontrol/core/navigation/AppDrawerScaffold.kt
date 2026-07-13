@@ -30,12 +30,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-
-private val PrimaryBlue = Color(0xFF0052CC)
-private val BackgroundGray = Color(0xFFF5F5F5)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,14 +220,14 @@ fun AppDrawerScaffold(
     ) {
 
         Scaffold(
-            containerColor = BackgroundGray,
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
 
                 TopAppBar(
                     title = {
                         Text(
                             text = "🅿️ ParkControl",
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     },
                     navigationIcon = {
@@ -246,13 +242,14 @@ fun AppDrawerScaffold(
                             Icon(
                                 imageVector = Icons.Rounded.Menu,
                                 contentDescription = "Menu",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = PrimaryBlue,
-                        titleContentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 )
             }
