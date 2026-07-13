@@ -39,6 +39,9 @@ class ParkingViewModel(
     private val _licensePlate = mutableStateOf("")
     val licensePlate: State<String> = _licensePlate
 
+    private val _licensePlateError = mutableStateOf<String?>(null)
+    val licensePlateError: State<String?> = _licensePlateError
+
     private val _phone = mutableStateOf("")
     val phone: State<String> = _phone
 
@@ -77,6 +80,7 @@ class ParkingViewModel(
 
     fun updateLicensePlate(plate: String) {
         _licensePlate.value = plate.uppercase()
+        if (plate.isNotBlank()) _licensePlateError.value = null
         refreshOpenRecordSuggestions()
     }
 
@@ -101,7 +105,10 @@ class ParkingViewModel(
 
     fun registerEntry() {
         val normalizedPlate = _licensePlate.value.trim().uppercase()
-        if (normalizedPlate.isEmpty()) return
+        if (normalizedPlate.isEmpty()) {
+            _licensePlateError.value = "A placa é obrigatória"
+            return
+        }
 
         val newRecord = ParkingRecord(
             licensePlate = normalizedPlate,

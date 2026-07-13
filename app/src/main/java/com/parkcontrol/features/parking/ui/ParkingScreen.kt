@@ -140,13 +140,18 @@ private fun VehiclePlateSection(
     OutlinedTextField(
         value = viewModel.licensePlate.value,
         onValueChange = viewModel::updateLicensePlate,
-        label = { Text("Digite a placa") },
+        label = { Text("Digite a placa *") },
         singleLine = true,
         shape = RoundedCornerShape(8.dp),
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+        isError = viewModel.licensePlateError.value != null,
+        supportingText = {
+            viewModel.licensePlateError.value?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error)
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
-            .height(70.dp)
     )
 
     Spacer(modifier = Modifier.height(12.dp))
@@ -500,7 +505,7 @@ private fun InfoSection() {
     val colorScheme = MaterialTheme.colorScheme
 
     Text(
-        text = "ℹ️ Digite placa ou telefone para buscar os estacionados sem baixa.\nSelecione um registro para dar saída.",
+        text = "ℹ️ Digite placa ou telefone para buscar os veículos sem saída registrada.\nSelecione um registro para dar saída.",
         fontSize = 12.sp,
         color = colorScheme.onPrimaryContainer,
         modifier = Modifier
