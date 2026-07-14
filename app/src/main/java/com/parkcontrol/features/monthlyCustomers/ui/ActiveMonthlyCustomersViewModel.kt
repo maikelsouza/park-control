@@ -85,6 +85,8 @@ class ActiveMonthlyCustomersViewModel(
         }
 
         val normalizedName = name.trim()
+        val normalizedPhone = phone.trim()
+
         val existingPlates = _uiState.value.customers
             .asSequence()
             .filter { customer -> customer.id != customerId }
@@ -97,6 +99,20 @@ class ActiveMonthlyCustomersViewModel(
                 errorMessage = "Placa ja cadastrada: $duplicatePlate"
             )
             return
+        }
+
+        if (normalizedPhone.isNotBlank()) {
+            val phoneAlreadyUsed = _uiState.value.customers
+                .any { customer ->
+                    customer.id != customerId &&
+                        customer.phone.trim().equals(normalizedPhone, ignoreCase = true)
+                }
+            if (phoneAlreadyUsed) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = "Telefone ja cadastrado para outro cliente"
+                )
+                return
+            }
         }
 
         val monthlyFeeCents: Int?
@@ -132,7 +148,7 @@ class ActiveMonthlyCustomersViewModel(
                 val customer = MonthlyCustomer(
                     id = existing?.id ?: 0,
                     name = normalizedName,
-                    phone = phone.trim(),
+                    phone = normalizedPhone,
                     isMonthly = isMonthly,
                     monthlyFeeCents = monthlyFeeCents,
                     dueDay = dueDayValue,

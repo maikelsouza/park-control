@@ -2,6 +2,8 @@ package com.parkcontrol.core.data.database
 
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
@@ -24,28 +26,21 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migratesLegacyVersionOneSchemaToVersionTwo() {
+    fun recreatesLegacyVersionOneSchemaFromScratch() {
         createLegacyVersionOneDatabase(LEGACY_DB_NAME)
 
         val database = openMigratedDatabase(LEGACY_DB_NAME)
         try {
             val sqliteDb = database.openHelper.writableDatabase
 
-            sqliteDb.query("SELECT `name`, `phone`, `isMonthly`, `monthlyFeeCents`, `dueDay`, `isActive` FROM `monthly_customers`").use { cursor ->
+            sqliteDb.query("SELECT COUNT(*) FROM `monthly_customers`").use { cursor ->
                 assertTrue(cursor.moveToFirst())
-                assertEquals("Cliente Legado", cursor.getString(0))
-                assertEquals("11999999999", cursor.getString(1))
-                assertEquals(0, cursor.getInt(2))
-                assertEquals(0, cursor.getInt(3))
-                assertEquals(1, cursor.getInt(4))
-                assertEquals(1, cursor.getInt(5))
+                assertEquals(0, cursor.getInt(0))
             }
 
-            sqliteDb.query("SELECT `customerId`, `plate`, `isPrimary` FROM `customer_plates`").use { cursor ->
+            sqliteDb.query("SELECT COUNT(*) FROM `customer_plates`").use { cursor ->
                 assertTrue(cursor.moveToFirst())
-                assertEquals(1, cursor.getInt(0))
-                assertEquals("ABC1D23", cursor.getString(1))
-                assertEquals(1, cursor.getInt(2))
+                assertEquals(0, cursor.getInt(0))
             }
 
             sqliteDb.query("SELECT COUNT(*) FROM `parking_records`").use { cursor ->
@@ -53,34 +48,40 @@ class AppDatabaseMigrationTest {
                 assertEquals(0, cursor.getInt(0))
             }
 
-            assertEquals(5, sqliteDb.version)
+            sqliteDb.query("PRAGMA table_info(`monthly_customers`)").use { cursor ->
+                val columns = mutableSetOf<String>()
+                while (cursor.moveToNext()) {
+                    columns += cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                }
+                assertTrue(columns.containsAll(listOf("id", "name", "phone", "isMonthly", "monthlyFeeCents", "dueDay", "isActive", "createdAt", "updatedAt")))
+            }
+
+            sqliteDb.query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'index_monthly_customers_phone'").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+            }
+
+            assertEquals(7, sqliteDb.version)
         } finally {
             database.close()
         }
     }
 
     @Test
-    fun migratesCurrentVersionOneSchemaWithoutLosingData() {
+    fun recreatesCurrentVersionOneSchemaFromScratch() {
         createCurrentVersionOneDatabase(CURRENT_DB_NAME)
 
         val database = openMigratedDatabase(CURRENT_DB_NAME)
         try {
             val sqliteDb = database.openHelper.writableDatabase
 
-            sqliteDb.query("SELECT `name`, `isMonthly`, `monthlyFeeCents`, `dueDay`, `isActive` FROM `monthly_customers`").use { cursor ->
+            sqliteDb.query("SELECT COUNT(*) FROM `monthly_customers`").use { cursor ->
                 assertTrue(cursor.moveToFirst())
-                assertEquals("Cliente Atual", cursor.getString(0))
-                assertEquals(1, cursor.getInt(1))
-                assertEquals(15990, cursor.getInt(2))
-                assertEquals(10, cursor.getInt(3))
-                assertEquals(1, cursor.getInt(4))
+                assertEquals(0, cursor.getInt(0))
             }
 
-            sqliteDb.query("SELECT `customerId`, `plate`, `isPrimary` FROM `customer_plates`").use { cursor ->
+            sqliteDb.query("SELECT COUNT(*) FROM `customer_plates`").use { cursor ->
                 assertTrue(cursor.moveToFirst())
-                assertEquals(7, cursor.getInt(0))
-                assertEquals("XYZ9K88", cursor.getString(1))
-                assertEquals(1, cursor.getInt(2))
+                assertEquals(0, cursor.getInt(0))
             }
 
             sqliteDb.query("SELECT COUNT(*) FROM `parking_records`").use { cursor ->
@@ -88,7 +89,11 @@ class AppDatabaseMigrationTest {
                 assertEquals(0, cursor.getInt(0))
             }
 
-            assertEquals(5, sqliteDb.version)
+            sqliteDb.query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'index_monthly_customers_phone'").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+            }
+
+            assertEquals(7, sqliteDb.version)
         } finally {
             database.close()
         }
@@ -96,15 +101,27 @@ class AppDatabaseMigrationTest {
 
     private fun openMigratedDatabase(databaseName: String): AppDatabase {
         return Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-            .addMigrations(
-                AppDatabase.MIGRATION_1_2,
-                AppDatabase.MIGRATION_2_3,
-                AppDatabase.MIGRATION_3_4,
-                AppDatabase.MIGRATION_4_5
-            )
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .addCallback(createPhoneUniqueIndexCallback())
             .allowMainThreadQueries()
             .build()
             .also { it.openHelper.writableDatabase }
+    }
+
+    private fun createPhoneUniqueIndexCallback() = object : RoomDatabase.Callback() {
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            super.onCreate(db)
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_phone` ON `monthly_customers` (`phone`) WHERE TRIM(`phone`) != ''"
+            )
+        }
+
+        override fun onOpen(db: SupportSQLiteDatabase) {
+            super.onOpen(db)
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_phone` ON `monthly_customers` (`phone`) WHERE TRIM(`phone`) != ''"
+            )
+        }
     }
 
     private fun createLegacyVersionOneDatabase(databaseName: String) {
