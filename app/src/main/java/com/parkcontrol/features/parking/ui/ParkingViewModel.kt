@@ -35,6 +35,10 @@ class ParkingViewModel(
         CoreDependencies.createUpdateParkingRecordUseCase(application)
     }
 
+    private val checkVehicleActiveParkingUseCase by lazy {
+        CoreDependencies.createCheckVehicleActiveParkingUseCase(application)
+    }
+
     // Initialize state variables before init block
     private val _licensePlate = mutableStateOf("")
     val licensePlate: State<String> = _licensePlate
@@ -110,22 +114,29 @@ class ParkingViewModel(
             return
         }
 
-        val newRecord = ParkingRecord(
-            licensePlate = normalizedPlate,
-            phone = _phone.value.trim(),
-            entryTime = LocalDateTime.now(),
-            status = ParkingStatus.ESTACIONADO
-        )
-
-        _selectedRecord.value = newRecord
-
         viewModelScope.launch {
-            saveParkingRecordUseCase(newRecord)
-        }
+            // Check if vehicle already has an active parking
+            val hasActiveParking = checkVehicleActiveParkingUseCase(normalizedPlate)
+            if (hasActiveParking) {
+                _licensePlateError.value = "Este veículo já está estacionado. Registre a saída antes de estacionar novamente."
+                return@launch
+            }
 
-        _licensePlate.value = ""
-        _phone.value = ""
-        refreshOpenRecordSuggestions()
+            val newRecord = ParkingRecord(
+                licensePlate = normalizedPlate,
+                phone = _phone.value.trim(),
+                entryTime = LocalDateTime.now(),
+                status = ParkingStatus.ESTACIONADO
+            )
+
+            _selectedRecord.value = newRecord
+
+            saveParkingRecordUseCase(newRecord)
+
+            _licensePlate.value = ""
+            _phone.value = ""
+            refreshOpenRecordSuggestions()
+        }
     }
 
     fun registerExit(record: ParkingRecord) {

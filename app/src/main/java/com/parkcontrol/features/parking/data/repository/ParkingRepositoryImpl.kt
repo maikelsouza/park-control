@@ -29,6 +29,10 @@ class ParkingRepositoryImpl(
         dao.updateParkingRecord(recordEntity)
     }
 
+    override suspend fun hasActiveParking(licensePlate: String): Boolean {
+        return dao.hasActiveParking(licensePlate)
+    }
+
     private fun ParkingRecord.toUpdatedEntity(existingRecord: ParkingRecordEntity?): ParkingRecordEntity {
         val now = System.currentTimeMillis()
         val baseEntity = toEntity()

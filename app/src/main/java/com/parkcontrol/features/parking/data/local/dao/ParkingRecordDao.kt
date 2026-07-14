@@ -60,10 +60,22 @@ interface ParkingRecordDao {
                 licensePlate = normalizedPlate,
                 phone = normalizedPhone
             )
-        )
-    }
+         )
+     }
 
-    private suspend fun createFallbackCustomer(plate: String, phone: String): Int {
+     @Query(
+         """
+         SELECT EXISTS (
+             SELECT 1 FROM parking_records
+             WHERE UPPER(TRIM(licensePlate)) = UPPER(TRIM(:licensePlate))
+             AND status = 'ESTACIONADO'
+             LIMIT 1
+         )
+         """
+     )
+     suspend fun hasActiveParking(licensePlate: String): Boolean
+
+     private suspend fun createFallbackCustomer(plate: String, phone: String): Int {
         val now = System.currentTimeMillis()
         val customerId = insertCustomer(
             MonthlyCustomerEntity(

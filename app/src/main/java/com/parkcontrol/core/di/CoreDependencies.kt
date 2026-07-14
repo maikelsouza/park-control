@@ -10,6 +10,7 @@ import com.parkcontrol.features.monthlyCustomers.data.repository.MonthlyCustomer
 import com.parkcontrol.features.monthlyCustomers.domain.repository.MonthlyCustomerRepository
 import com.parkcontrol.features.parking.data.repository.ParkingRepositoryImpl
 import com.parkcontrol.features.parking.domain.repository.ParkingRepository
+import com.parkcontrol.features.parking.domain.usecase.CheckVehicleActiveParkingUseCase
 import com.parkcontrol.features.parking.domain.usecase.ObserveParkingRecordsUseCase
 import com.parkcontrol.features.parking.domain.usecase.SaveParkingRecordUseCase
 import com.parkcontrol.features.parking.domain.usecase.UpdateParkingRecordUseCase
@@ -86,8 +87,12 @@ object CoreDependencies {
         return SaveParkingRecordUseCase(getParkingRepository(context))
     }
 
-    fun createUpdateParkingRecordUseCase(context: Context): UpdateParkingRecordUseCase {
-        return UpdateParkingRecordUseCase(getParkingRepository(context))
-    }
+     fun createUpdateParkingRecordUseCase(context: Context): UpdateParkingRecordUseCase {
+         return UpdateParkingRecordUseCase(getParkingRepository(context))
+     }
+
+     fun createCheckVehicleActiveParkingUseCase(context: Context): CheckVehicleActiveParkingUseCase {
+         return CheckVehicleActiveParkingUseCase(getParkingRepository(context))
+     }
 }
 

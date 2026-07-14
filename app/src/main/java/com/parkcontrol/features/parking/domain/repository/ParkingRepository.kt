@@ -9,5 +9,7 @@ interface ParkingRepository {
     suspend fun addParkingRecord(record: ParkingRecord)
 
     suspend fun updateParkingRecord(record: ParkingRecord)
+
+    suspend fun hasActiveParking(licensePlate: String): Boolean
 }
 
