@@ -191,6 +191,11 @@ class ActiveMonthlyCustomersViewModel(
     }
 
     private fun parseFeeToCents(input: String): Int? {
+        val digitsOnly = input.filter(Char::isDigit)
+        if (digitsOnly.isNotEmpty() && digitsOnly.length == input.trim().length) {
+            return digitsOnly.toLongOrNull()?.takeIf { it <= Int.MAX_VALUE }?.toInt()
+        }
+
         val normalized = input
             .replace("R$", "")
             .trim()

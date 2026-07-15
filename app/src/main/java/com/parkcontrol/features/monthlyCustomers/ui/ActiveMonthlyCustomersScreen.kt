@@ -63,6 +63,7 @@ import java.text.NumberFormat
 import java.util.Locale
 
 private val PhoneMaskTransformation = BrazilianPhoneVisualTransformation()
+private val CurrencyMaskTransformation = BrazilianCurrencyVisualTransformation()
 
 private class BrazilianPhoneVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
@@ -80,6 +81,38 @@ private class BrazilianPhoneVisualTransformation : VisualTransformation {
                     else -> safeOffset + 4
                 }
                 return transformedOffset.coerceAtMost(masked.length)
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                val safeOffset = offset.coerceIn(0, masked.length)
+                return masked.take(safeOffset).count(Char::isDigit).coerceAtMost(digits.length)
+            }
+        }
+
+        return TransformedText(AnnotatedString(masked), offsetMapping)
+    }
+}
+
+private class BrazilianCurrencyVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val digits = text.text.onlyMoneyDigits().take(11)
+        val masked = digits.toBrazilianCurrencyMask()
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                val safeOffset = offset.coerceIn(0, digits.length)
+                if (safeOffset == 0) return 0
+
+                var digitCount = 0
+                masked.forEachIndexed { index, char ->
+                    if (char.isDigit()) {
+                        digitCount++
+                        if (digitCount == safeOffset) {
+                            return index + 1
+                        }
+                    }
+                }
+                return masked.length
             }
 
             override fun transformedToOriginal(offset: Int): Int {
@@ -324,7 +357,7 @@ fun MonthlyCustomerFormScreen(
                 name = customer.name
                 phone = customer.phone.onlyPhoneDigits().take(11)
                 isMonthly = customer.isMonthly
-                monthlyFee = customer.monthlyFeeCents.toMoneyInput()
+                monthlyFee = customer.monthlyFeeCents.toMoneyDigitsInput()
                 dueDay = customer.dueDay?.toString().orEmpty()
                 plates.clear()
                 plates.addAll(customer.plates.ifEmpty { listOf("") })
@@ -413,11 +446,12 @@ fun MonthlyCustomerFormScreen(
                     if (isMonthly) {
                         OutlinedTextField(
                             value = monthlyFee,
-                            onValueChange = { monthlyFee = it },
-                            label = { Text("Mensalidade fixa (ex: 250,00) *") },
+                            onValueChange = { typed -> monthlyFee = typed.onlyMoneyDigits().take(11) },
+                            label = { Text("Mensalidade fixa *") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            visualTransformation = CurrencyMaskTransformation
                         )
 
                         OutlinedTextField(
@@ -536,12 +570,25 @@ private fun Int?.toCurrency(): String {
     return formatter.format(this / 100.0)
 }
 
-private fun Int?.toMoneyInput(): String {
+private fun Int?.toMoneyDigitsInput(): String {
     if (this == null) return ""
-    return String.format(Locale.US, "%.2f", this / 100.0).replace('.', ',')
+    return this.toString()
 }
 
 private fun String.onlyPhoneDigits(): String = filter(Char::isDigit)
+private fun String.onlyMoneyDigits(): String = filter(Char::isDigit)
+
+private fun String.toBrazilianCurrencyMask(): String {
+    val digits = onlyMoneyDigits().take(11)
+    if (digits.isEmpty()) return ""
+
+    val cents = digits.toLongOrNull() ?: return ""
+    val integerPart = cents / 100
+    val decimalPart = (cents % 100).toString().padStart(2, '0')
+    val ptBrLocale = Locale.Builder().setLanguage("pt").setRegion("BR").build()
+    val integerFormatted = NumberFormat.getIntegerInstance(ptBrLocale).format(integerPart)
+    return "R$ $integerFormatted,$decimalPart"
+}
 
 private fun String.toBrazilianPhoneMask(): String {
     val digits = onlyPhoneDigits().take(11)
