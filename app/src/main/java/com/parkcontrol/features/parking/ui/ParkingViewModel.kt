@@ -89,14 +89,14 @@ class ParkingViewModel(
     }
 
     fun updatePhone(phone: String) {
-        _phone.value = phone
+        _phone.value = phone.filter(Char::isDigit).take(11)
         refreshOpenRecordSuggestions()
     }
 
     fun selectSuggestedRecord(record: ParkingRecord) {
         _selectedRecord.value = record
         _licensePlate.value = record.licensePlate
-        _phone.value = record.phone
+        _phone.value = record.phone.filter(Char::isDigit).take(11)
         refreshOpenRecordSuggestions()
     }
 
@@ -124,7 +124,7 @@ class ParkingViewModel(
 
             val newRecord = ParkingRecord(
                 licensePlate = normalizedPlate,
-                phone = _phone.value.trim(),
+                phone = _phone.value.filter(Char::isDigit).take(11),
                 entryTime = LocalDateTime.now(),
                 status = ParkingStatus.ESTACIONADO
             )
@@ -178,7 +178,7 @@ class ParkingViewModel(
 
     private fun refreshOpenRecordSuggestions() {
         val plateFilter = _licensePlate.value.trim().uppercase()
-        val phoneFilter = _phone.value.trim()
+        val phoneFilter = _phone.value.filter(Char::isDigit)
 
         if (plateFilter.isEmpty() && phoneFilter.isEmpty()) {
             _openRecordSuggestions.value = emptyList()
@@ -191,8 +191,9 @@ class ParkingViewModel(
             .filter { record ->
                 val matchesPlate = plateFilter.isEmpty() ||
                     record.licensePlate.uppercase().contains(plateFilter)
+                val recordPhoneDigits = record.phone.filter(Char::isDigit)
                 val matchesPhone = phoneFilter.isEmpty() ||
-                    record.phone.contains(phoneFilter, ignoreCase = true)
+                    recordPhoneDigits.contains(phoneFilter)
                 matchesPlate && matchesPhone
             }
             .toList()

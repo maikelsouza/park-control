@@ -85,7 +85,7 @@ class ActiveMonthlyCustomersViewModel(
         }
 
         val normalizedName = name.trim()
-        val normalizedPhone = phone.trim()
+        val normalizedPhone = phone.filter(Char::isDigit).take(11)
 
         val existingPlates = _uiState.value.customers
             .asSequence()
@@ -105,7 +105,7 @@ class ActiveMonthlyCustomersViewModel(
             val phoneAlreadyUsed = _uiState.value.customers
                 .any { customer ->
                     customer.id != customerId &&
-                        customer.phone.trim().equals(normalizedPhone, ignoreCase = true)
+                        customer.phone.filter(Char::isDigit).take(11) == normalizedPhone
                 }
             if (phoneAlreadyUsed) {
                 _uiState.value = _uiState.value.copy(
