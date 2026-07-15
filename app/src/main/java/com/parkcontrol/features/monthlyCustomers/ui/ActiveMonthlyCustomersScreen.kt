@@ -24,7 +24,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +68,7 @@ import java.util.Locale
 
 private val PhoneMaskTransformation = BrazilianPhoneVisualTransformation()
 private val CurrencyMaskTransformation = BrazilianCurrencyVisualTransformation()
+private val DueDayOptions = listOf("1", "5", "10", "15", "20", "25")
 
 private class BrazilianPhoneVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
@@ -346,6 +351,7 @@ fun MonthlyCustomerFormScreen(
         val plates = remember(customerId) { mutableStateListOf("") }
         var didPrefill by rememberSaveable(customerId) { mutableStateOf(false) }
         var showInactivateDialog by remember { mutableStateOf(false) }
+        var dueDayMenuExpanded by remember { mutableStateOf(false) }
 
         LaunchedEffect(customerId) {
             viewModel.loadCustomerForEdit(customerId)
@@ -454,14 +460,43 @@ fun MonthlyCustomerFormScreen(
                             visualTransformation = CurrencyMaskTransformation
                         )
 
-                        OutlinedTextField(
-                            value = dueDay,
-                            onValueChange = { dueDay = it },
-                            label = { Text("Dia de vencimento (1-31) *") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                        ExposedDropdownMenuBox(
+                            expanded = dueDayMenuExpanded,
+                            onExpandedChange = { dueDayMenuExpanded = !dueDayMenuExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = dueDay,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Dia de vencimento *") },
+                                placeholder = { Text("Selecione") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = dueDayMenuExpanded)
+                                },
+                                modifier = Modifier
+                                    .menuAnchor(
+                                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                        enabled = true
+                                    )
+                                    .fillMaxWidth(),
+                                singleLine = true
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = dueDayMenuExpanded,
+                                onDismissRequest = { dueDayMenuExpanded = false }
+                            ) {
+                                DueDayOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option) },
+                                        onClick = {
+                                            dueDay = option
+                                            dueDayMenuExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     Text("Placas")

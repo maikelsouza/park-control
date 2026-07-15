@@ -24,6 +24,8 @@ class ActiveMonthlyCustomersViewModel(
     private val inactivateMonthlyCustomerUseCase: InactivateMonthlyCustomerUseCase
 ) : AndroidViewModel(application) {
 
+    private val allowedDueDays = setOf(1, 5, 10, 15, 20, 25)
+
     // UI State
     private val _uiState = MutableStateFlow(MonthlyCustomersUiState())
     val uiState: StateFlow<MonthlyCustomersUiState> = _uiState
@@ -131,8 +133,8 @@ class ActiveMonthlyCustomersViewModel(
             dueDayValue = if (dueDay.isBlank()) {
                 null
             } else {
-                dueDay.toIntOrNull()?.takeIf { it in 1..31 } ?: run {
-                    _uiState.value = _uiState.value.copy(errorMessage = "Vencimento deve ser entre 1 e 31")
+                dueDay.toIntOrNull()?.takeIf { it in allowedDueDays } ?: run {
+                    _uiState.value = _uiState.value.copy(errorMessage = "Vencimento deve ser: 1, 5, 10, 15, 20 ou 25")
                     return
                 }
             }
