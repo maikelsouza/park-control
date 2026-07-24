@@ -35,17 +35,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
+import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
+import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.theme.ParkControlTheme
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
@@ -53,44 +51,6 @@ import com.parkcontrol.features.parking.domain.model.formatToBrazilian
 import com.parkcontrol.features.parking.domain.usecase.CalculateParkingPriceUseCase
 
 private val SuccessGreen = Color(0xFF28A745)
-private val PhoneMaskTransformation = BrazilianPhoneVisualTransformation()
-
-private class BrazilianPhoneVisualTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val digits = text.text.filter(Char::isDigit).take(11)
-
-        val masked = when {
-            digits.isEmpty() -> ""
-            digits.length <= 2 -> "(${digits}"
-            digits.length <= 6 -> "(${digits.substring(0, 2)}) ${digits.substring(2)}"
-            digits.length <= 10 -> "(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}"
-            else -> "(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}"
-        }
-
-        val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                val safeOffset = offset.coerceIn(0, digits.length)
-                val transformedOffset = when {
-                    safeOffset == 0 -> 0
-                    safeOffset <= 2 -> safeOffset + 1 // "("
-                    digits.length <= 10 && safeOffset <= 6 -> safeOffset + 3 // ") "
-                    else -> safeOffset + 4 // ") " + "-"
-                }
-                return transformedOffset.coerceAtMost(masked.length)
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                val safeOffset = offset.coerceIn(0, masked.length)
-                return masked
-                    .take(safeOffset)
-                    .count(Char::isDigit)
-                    .coerceAtMost(digits.length)
-            }
-        }
-
-        return TransformedText(AnnotatedString(masked), offsetMapping)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -199,7 +159,7 @@ private fun VehiclePlateSection(
     OutlinedTextField(
         value = viewModel.phone.value,
         onValueChange = { typedPhone ->
-            viewModel.updatePhone(typedPhone.filter(Char::isDigit).take(11))
+            viewModel.updatePhone(typedPhone.onlyPhoneDigits().take(11))
         },
         label = { Text("Telefone") },
         singleLine = true,
