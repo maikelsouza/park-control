@@ -13,7 +13,7 @@ import com.parkcontrol.features.parking.data.local.entity.ParkingRecordEntity
 
 @Database(
     entities = [MonthlyCustomerEntity::class, CustomerPlateEntity::class, ParkingRecordEntity::class],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -23,15 +23,15 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun parkingRecordDao(): ParkingRecordDao
 
     companion object {
-        private val CREATE_PHONE_UNIQUE_INDEX_CALLBACK = object : Callback() {
+        private val CREATE_UNIQUE_INDEXES_CALLBACK = object : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                ensurePhoneUniqueIndex(db)
+                ensureMonthlyCustomerUniqueIndexes(db)
             }
 
             override fun onOpen(db: SupportSQLiteDatabase) {
                 super.onOpen(db)
-                ensurePhoneUniqueIndex(db)
+                ensureMonthlyCustomerUniqueIndexes(db)
             }
         }
 
@@ -46,7 +46,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "parkcontrol_database"
                 )
                     .fallbackToDestructiveMigration(dropAllTables = true)
-                    .addCallback(CREATE_PHONE_UNIQUE_INDEX_CALLBACK)
+                    .addCallback(CREATE_UNIQUE_INDEXES_CALLBACK)
                     .build()
                 INSTANCE = instance
                 instance
@@ -55,9 +55,12 @@ abstract class AppDatabase : RoomDatabase() {
     }
 }
 
-private fun ensurePhoneUniqueIndex(db: SupportSQLiteDatabase) {
+private fun ensureMonthlyCustomerUniqueIndexes(db: SupportSQLiteDatabase) {
     db.execSQL(
         "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_phone` ON `monthly_customers` (`phone`) WHERE TRIM(`phone`) != ''"
+    )
+    db.execSQL(
+        "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_email` ON `monthly_customers` (`email`) WHERE TRIM(`email`) != ''"
     )
 }
 

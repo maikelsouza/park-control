@@ -9,6 +9,7 @@ data class MonthlyCustomerEntity(
     val id: Int = 0,
     val name: String,
     val phone: String,
+    val email: String,
     val isMonthly: Boolean = true,
     val monthlyFeeCents: Int? = null,
     val dueDay: Int? = null,

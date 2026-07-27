@@ -53,14 +53,18 @@ class AppDatabaseMigrationTest {
                 while (cursor.moveToNext()) {
                     columns += cursor.getString(cursor.getColumnIndexOrThrow("name"))
                 }
-                assertTrue(columns.containsAll(listOf("id", "name", "phone", "isMonthly", "monthlyFeeCents", "dueDay", "isActive", "createdAt", "updatedAt")))
+                assertTrue(columns.containsAll(listOf("id", "name", "phone", "email", "isMonthly", "monthlyFeeCents", "dueDay", "isActive", "createdAt", "updatedAt")))
             }
 
             sqliteDb.query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'index_monthly_customers_phone'").use { cursor ->
                 assertTrue(cursor.moveToFirst())
             }
 
-            assertEquals(7, sqliteDb.version)
+            sqliteDb.query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'index_monthly_customers_email'").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+            }
+
+            assertEquals(8, sqliteDb.version)
         } finally {
             database.close()
         }
@@ -93,7 +97,11 @@ class AppDatabaseMigrationTest {
                 assertTrue(cursor.moveToFirst())
             }
 
-            assertEquals(7, sqliteDb.version)
+            sqliteDb.query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'index_monthly_customers_email'").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+            }
+
+            assertEquals(8, sqliteDb.version)
         } finally {
             database.close()
         }
@@ -114,12 +122,18 @@ class AppDatabaseMigrationTest {
             db.execSQL(
                 "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_phone` ON `monthly_customers` (`phone`) WHERE TRIM(`phone`) != ''"
             )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_email` ON `monthly_customers` (`email`) WHERE TRIM(`email`) != ''"
+            )
         }
 
         override fun onOpen(db: SupportSQLiteDatabase) {
             super.onOpen(db)
             db.execSQL(
                 "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_phone` ON `monthly_customers` (`phone`) WHERE TRIM(`phone`) != ''"
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_email` ON `monthly_customers` (`email`) WHERE TRIM(`email`) != ''"
             )
         }
     }

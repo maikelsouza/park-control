@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -230,6 +231,9 @@ fun ActiveMonthlyCustomersScreen(
                             if (customer.phone.isNotEmpty()) {
                                 Text("Telefone: ${customer.phone.toBrazilianPhoneMask()}")
                             }
+                            if (customer.email.isNotEmpty()) {
+                                Text("Email: ${customer.email}")
+                            }
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -319,6 +323,8 @@ fun MonthlyCustomerFormScreen(
 
         var name by rememberSaveable(customerId) { mutableStateOf("") }
         var phone by rememberSaveable(customerId) { mutableStateOf("") }
+        var email by rememberSaveable(customerId) { mutableStateOf("") }
+        var emailFieldTouched by rememberSaveable(customerId) { mutableStateOf(false) }
         var isMonthly by rememberSaveable(customerId) { mutableStateOf(true) }
         var monthlyFee by rememberSaveable(customerId) { mutableStateOf("") }
         var dueDay by rememberSaveable(customerId) { mutableStateOf("") }
@@ -336,6 +342,7 @@ fun MonthlyCustomerFormScreen(
             if (customerId != null && customer != null && !didPrefill) {
                 name = customer.name
                 phone = customer.phone.onlyPhoneDigits().take(11)
+                email = customer.email
                 isMonthly = customer.isMonthly
                 monthlyFee = customer.monthlyFeeCents.toMoneyDigitsInput()
                 dueDay = customer.dueDay?.toString().orEmpty()
@@ -404,6 +411,29 @@ fun MonthlyCustomerFormScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         visualTransformation = PhoneMaskTransformation
+                    )
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { typed ->
+                            emailFieldTouched = true
+                            email = typed.sanitizeEmailInput()
+                        },
+                        label = { Text("Email") },
+                        placeholder = { Text("ex: nome@dominio.com") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = emailFieldTouched && email.isNotBlank() && !email.looksLikeEmail(),
+                        supportingText = {
+                            if (emailFieldTouched && email.isNotBlank() && !email.looksLikeEmail()) {
+                                Text("Informe um e-mail válido")
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false
+                        )
                     )
 
                     Row(
@@ -525,6 +555,7 @@ fun MonthlyCustomerFormScreen(
                                 customerId = customerId,
                                 name = name,
                                 phone = phone.onlyPhoneDigits().take(11),
+                                email = email,
                                 isMonthly = isMonthly,
                                 monthlyFee = monthlyFee,
                                 dueDay = dueDay,
@@ -585,6 +616,28 @@ private fun Int?.toMoneyDigitsInput(): String {
 }
 
 private fun String.onlyMoneyDigits(): String = filter(Char::isDigit)
+
+private fun String.sanitizeEmailInput(): String {
+    val allowedChars = buildString(length) {
+        for (char in this@sanitizeEmailInput.lowercase(Locale.ROOT)) {
+            if (char.isLetterOrDigit() || char in setOf('@', '.', '_', '-', '+')) {
+                append(char)
+            }
+        }
+    }
+
+    val parts = allowedChars.split('@', limit = 2)
+    return when {
+        parts.size == 1 -> parts[0].trim()
+        else -> "${parts[0].trim()}@${parts[1].trim()}"
+    }.take(254)
+}
+
+private fun String.looksLikeEmail(): Boolean {
+    if (isBlank()) return false
+    val regex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+    return regex.matches(trim())
+}
 
 private fun String.toBrazilianCurrencyMask(): String {
     val digits = onlyMoneyDigits().take(11)

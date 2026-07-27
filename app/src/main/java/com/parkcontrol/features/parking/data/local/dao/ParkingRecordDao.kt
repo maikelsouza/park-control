@@ -81,6 +81,7 @@ interface ParkingRecordDao {
             MonthlyCustomerEntity(
                 name = "não informado",
                 phone = phone,
+                email = "",
                 isMonthly = false,
                 monthlyFeeCents = null,
                 dueDay = null,

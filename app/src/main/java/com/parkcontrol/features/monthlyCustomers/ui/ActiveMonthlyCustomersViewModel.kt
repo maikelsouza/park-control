@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.Locale
 
 class ActiveMonthlyCustomersViewModel(
     application: Application,
@@ -25,6 +26,7 @@ class ActiveMonthlyCustomersViewModel(
 ) : AndroidViewModel(application) {
 
     private val allowedDueDays = setOf(1, 5, 10, 15, 20, 25)
+    private val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
     // UI State
     private val _uiState = MutableStateFlow(MonthlyCustomersUiState())
@@ -69,6 +71,7 @@ class ActiveMonthlyCustomersViewModel(
         customerId: Int?,
         name: String,
         phone: String,
+        email: String,
         isMonthly: Boolean,
         monthlyFee: String,
         dueDay: String,
@@ -88,6 +91,14 @@ class ActiveMonthlyCustomersViewModel(
 
         val normalizedName = name.trim()
         val normalizedPhone = phone.filter(Char::isDigit).take(11)
+        val normalizedEmail = email.trim().lowercase(Locale.ROOT)
+
+        if (normalizedEmail.isNotBlank() && !emailRegex.matches(normalizedEmail)) {
+            _uiState.value = _uiState.value.copy(
+                errorMessage = "Email invalido"
+            )
+            return
+        }
 
         val existingPlates = _uiState.value.customers
             .asSequence()
@@ -112,6 +123,20 @@ class ActiveMonthlyCustomersViewModel(
             if (phoneAlreadyUsed) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = "Telefone ja cadastrado para outro cliente"
+                )
+                return
+            }
+        }
+
+        if (normalizedEmail.isNotBlank()) {
+            val emailAlreadyUsed = _uiState.value.customers
+                .any { customer ->
+                    customer.id != customerId &&
+                        customer.email.trim().lowercase(Locale.ROOT) == normalizedEmail
+                }
+            if (emailAlreadyUsed) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = "Email ja cadastrado para outro cliente"
                 )
                 return
             }
@@ -151,6 +176,7 @@ class ActiveMonthlyCustomersViewModel(
                     id = existing?.id ?: 0,
                     name = normalizedName,
                     phone = normalizedPhone,
+                    email = normalizedEmail,
                     isMonthly = isMonthly,
                     monthlyFeeCents = monthlyFeeCents,
                     dueDay = dueDayValue,
