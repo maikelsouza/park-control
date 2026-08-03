@@ -8,8 +8,8 @@ data class MonthlyCustomerWithPlates(
     val customer: MonthlyCustomerEntity,
     @Relation(
         parentColumn = "id",
-        entityColumn = "customerId"
+        entityColumn = "customerId",
+        entity = CustomerVehicleEntity::class
     )
-    val plates: List<CustomerPlateEntity>
+    val vehicles: List<CustomerVehicleEntity>
 )
-

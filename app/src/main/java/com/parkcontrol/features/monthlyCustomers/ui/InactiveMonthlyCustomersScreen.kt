@@ -60,7 +60,7 @@ fun InactiveMonthlyCustomersScreen(
                 true
             } else {
                 customer.name.contains(query, ignoreCase = true) ||
-                    customer.plates.any { plate -> plate.contains(query, ignoreCase = true) }
+                    customer.vehicles.any { v -> v.plate.contains(query, ignoreCase = true) }
             }
         }
 
@@ -124,21 +124,25 @@ fun InactiveMonthlyCustomersScreen(
                             modifier = Modifier.padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val primaryPlate = customer.plates.firstOrNull().orEmpty()
-                            val extraPlates = (customer.plates.size - 1).coerceAtLeast(0)
+                            val primaryVehicle = customer.vehicles.firstOrNull()
+                            val extra = (customer.vehicles.size - 1).coerceAtLeast(0)
 
                             Text(
                                 text = customer.name,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(
-                                text = if (extraPlates > 0) {
-                                    "Placa principal: $primaryPlate (+$extraPlates)"
-                                } else {
-                                    "Placa principal: $primaryPlate"
-                                }
-                            )
+                            if (primaryVehicle != null) {
+                                Text(
+                                    text = buildString {
+                                        append("${primaryVehicle.brand} ${primaryVehicle.model}".trim())
+                                        if (primaryVehicle.plate.isNotBlank()) append(" • ${primaryVehicle.plate}")
+                                        if (extra > 0) append(" (+$extra)")
+                                    }
+                                )
+                            } else {
+                                Text("Nenhum veículo cadastrado")
+                            }
                             if (customer.isMonthly) {
                                 Text("Mensalidade: ${customer.monthlyFeeCents.toCurrency()}")
                                 Text(

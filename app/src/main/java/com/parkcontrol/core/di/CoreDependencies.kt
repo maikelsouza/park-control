@@ -6,7 +6,9 @@ import com.parkcontrol.core.data.repository.ParkingConfigRepositoryImpl
 import com.parkcontrol.core.domain.repository.ParkingConfigRepository
 import com.parkcontrol.core.domain.usecase.GetParkingConfigUseCase
 import com.parkcontrol.core.domain.usecase.SaveParkingConfigUseCase
+import com.parkcontrol.features.monthlyCustomers.data.repository.CustomerVehicleRepositoryImpl
 import com.parkcontrol.features.monthlyCustomers.data.repository.MonthlyCustomerRepositoryImpl
+import com.parkcontrol.features.monthlyCustomers.domain.repository.CustomerVehicleRepository
 import com.parkcontrol.features.monthlyCustomers.domain.repository.MonthlyCustomerRepository
 import com.parkcontrol.features.parking.data.repository.ParkingRepositoryImpl
 import com.parkcontrol.features.parking.domain.repository.ParkingRepository
@@ -24,6 +26,7 @@ object CoreDependencies {
 
     private var parkingConfigRepository: ParkingConfigRepository? = null
     private var monthlyCustomerRepository: MonthlyCustomerRepository? = null
+    private var customerVehicleRepository: CustomerVehicleRepository? = null
     private var parkingRepository: ParkingRepository? = null
     private var appDatabase: AppDatabase? = null
 
@@ -54,6 +57,15 @@ object CoreDependencies {
             monthlyCustomerRepository = MonthlyCustomerRepositoryImpl(dao)
         }
         return monthlyCustomerRepository!!
+    }
+
+    fun getCustomerVehicleRepository(context: Context): CustomerVehicleRepository {
+        if (customerVehicleRepository == null) {
+            val database = getAppDatabase(context)
+            val dao = database.customerVehicleDao()
+            customerVehicleRepository = CustomerVehicleRepositoryImpl(dao)
+        }
+        return customerVehicleRepository!!
     }
 
     fun getParkingRepository(context: Context): ParkingRepository {

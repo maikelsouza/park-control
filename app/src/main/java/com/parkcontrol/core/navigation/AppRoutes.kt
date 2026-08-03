@@ -28,6 +28,19 @@ sealed class AppRoutes(
         }
     }
 
+    data object CustomerVehicles : AppRoutes("customer_vehicles/{customerId}") {
+        const val customerIdArg = "customerId"
+        fun createRoute(customerId: Int) = "customer_vehicles/$customerId"
+    }
+
+    data object CustomerVehicleForm :
+        AppRoutes("customer_vehicle_form/{customerId}?vehicleId={vehicleId}") {
+        const val customerIdArg = "customerId"
+        const val vehicleIdArg = "vehicleId"
+        fun createRoute(customerId: Int, vehicleId: Int? = null) =
+            "customer_vehicle_form/$customerId${if (vehicleId != null) "?vehicleId=$vehicleId" else ""}"
+    }
+
     data object Settings : AppRoutes("settings")
 
     data object About : AppRoutes("about")

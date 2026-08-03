@@ -5,21 +5,22 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.parkcontrol.features.monthlyCustomers.data.local.dao.CustomerVehicleDao
 import com.parkcontrol.features.monthlyCustomers.data.local.dao.MonthlyCustomerDao
-import com.parkcontrol.features.monthlyCustomers.data.local.entity.CustomerPlateEntity
+import com.parkcontrol.features.monthlyCustomers.data.local.entity.CustomerVehicleEntity
 import com.parkcontrol.features.monthlyCustomers.data.local.entity.MonthlyCustomerEntity
 import com.parkcontrol.features.parking.data.local.dao.ParkingRecordDao
 import com.parkcontrol.features.parking.data.local.entity.ParkingRecordEntity
 
 @Database(
-    entities = [MonthlyCustomerEntity::class, CustomerPlateEntity::class, ParkingRecordEntity::class],
-    version = 8,
+    entities = [MonthlyCustomerEntity::class, CustomerVehicleEntity::class, ParkingRecordEntity::class],
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun monthlyCustomerDao(): MonthlyCustomerDao
-
+    abstract fun customerVehicleDao(): CustomerVehicleDao
     abstract fun parkingRecordDao(): ParkingRecordDao
 
     companion object {
@@ -63,4 +64,3 @@ private fun ensureMonthlyCustomerUniqueIndexes(db: SupportSQLiteDatabase) {
         "CREATE UNIQUE INDEX IF NOT EXISTS `index_monthly_customers_email` ON `monthly_customers` (`email`) WHERE TRIM(`email`) != ''"
     )
 }
-

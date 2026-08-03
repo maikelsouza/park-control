@@ -6,8 +6,10 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.parkcontrol.features.monthlyCustomers.data.local.entity.CustomerPlateEntity
+import com.parkcontrol.features.monthlyCustomers.data.local.entity.CustomerVehicleEntity
 import com.parkcontrol.features.monthlyCustomers.data.local.entity.MonthlyCustomerEntity
+import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
+import com.parkcontrol.features.monthlyCustomers.domain.model.VehicleCategory
 import com.parkcontrol.features.parking.data.local.entity.ParkingRecordEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -30,9 +32,9 @@ interface ParkingRecordDao {
         """
         SELECT mc.id
         FROM monthly_customers mc
-        INNER JOIN customer_plates cp ON cp.customerId = mc.id
-        WHERE UPPER(TRIM(cp.plate)) = UPPER(TRIM(:plate))
-        ORDER BY mc.isActive DESC, cp.isPrimary DESC, mc.id DESC
+        INNER JOIN customer_vehicles cv ON cv.customerId = mc.id
+        WHERE UPPER(TRIM(cv.plate)) = UPPER(TRIM(:plate))
+        ORDER BY mc.isActive DESC, cv.isPrimary DESC, mc.id DESC
         LIMIT 1
         """
     )
@@ -42,17 +44,14 @@ interface ParkingRecordDao {
     suspend fun insertCustomer(customer: MonthlyCustomerEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertPlate(plate: CustomerPlateEntity)
+    suspend fun insertVehicle(vehicle: CustomerVehicleEntity)
 
     @Transaction
     suspend fun insertParkingRecordEnsuringCustomer(record: ParkingRecordEntity) {
         val normalizedPlate = record.licensePlate.trim().uppercase()
         val normalizedPhone = record.phone.trim()
         val customerId = getCustomerIdByPlate(normalizedPlate)
-            ?: createFallbackCustomer(
-                plate = normalizedPlate,
-                phone = normalizedPhone
-            )
+            ?: createFallbackCustomer(plate = normalizedPlate, phone = normalizedPhone)
 
         insertParkingRecord(
             record.copy(
@@ -60,22 +59,22 @@ interface ParkingRecordDao {
                 licensePlate = normalizedPlate,
                 phone = normalizedPhone
             )
-         )
-     }
+        )
+    }
 
-     @Query(
-         """
-         SELECT EXISTS (
-             SELECT 1 FROM parking_records
-             WHERE UPPER(TRIM(licensePlate)) = UPPER(TRIM(:licensePlate))
-             AND status = 'ESTACIONADO'
-             LIMIT 1
-         )
-         """
-     )
-     suspend fun hasActiveParking(licensePlate: String): Boolean
+    @Query(
+        """
+        SELECT EXISTS (
+            SELECT 1 FROM parking_records
+            WHERE UPPER(TRIM(licensePlate)) = UPPER(TRIM(:licensePlate))
+            AND status = 'ESTACIONADO'
+            LIMIT 1
+        )
+        """
+    )
+    suspend fun hasActiveParking(licensePlate: String): Boolean
 
-     private suspend fun createFallbackCustomer(plate: String, phone: String): Int {
+    private suspend fun createFallbackCustomer(plate: String, phone: String): Int {
         val now = System.currentTimeMillis()
         val customerId = insertCustomer(
             MonthlyCustomerEntity(
@@ -91,10 +90,16 @@ interface ParkingRecordDao {
             )
         ).toInt()
 
-        insertPlate(
-            CustomerPlateEntity(
+        insertVehicle(
+            CustomerVehicleEntity(
                 customerId = customerId,
+                brand = "",
+                model = "",
+                color = "",
                 plate = plate,
+                plateType = PlateType.OUTRA.name,
+                category = VehicleCategory.OUTRO.name,
+                parkingSpot = null,
                 isPrimary = true,
                 createdAt = now
             )
@@ -103,4 +108,3 @@ interface ParkingRecordDao {
         return customerId
     }
 }
-

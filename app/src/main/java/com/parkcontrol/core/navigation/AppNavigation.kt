@@ -10,6 +10,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.parkcontrol.features.home.ui.HomeScreen
 import com.parkcontrol.features.monthlyCustomers.ui.ActiveMonthlyCustomersScreen
+import com.parkcontrol.features.monthlyCustomers.ui.CustomerVehicleFormScreen
+import com.parkcontrol.features.monthlyCustomers.ui.CustomerVehiclesScreen
 import com.parkcontrol.features.monthlyCustomers.ui.InactiveMonthlyCustomersScreen
 import com.parkcontrol.features.monthlyCustomers.ui.MonthlyCustomerFormScreen
 import com.parkcontrol.features.about.ui.AboutScreen
@@ -121,7 +123,62 @@ fun AppNavigation(
                         ?.savedStateHandle
                         ?.set(MONTHLY_CUSTOMER_SAVE_RESULT_KEY, message)
                     navController.popBackStack()
+                },
+                onNewCustomerSaved = { newCustomerId ->
+                    navController.navigate(AppRoutes.CustomerVehicles.createRoute(newCustomerId)) {
+                        // Remove the form from the back stack so back goes to the list
+                        popUpTo(AppRoutes.MonthlyCustomerForm.route) { inclusive = true }
+                    }
                 }
+            )
+        }
+
+        // ── Vehicles list ─────────────────────────────────────────────────
+        composable(
+            route = AppRoutes.CustomerVehicles.route,
+            arguments = listOf(
+                navArgument(AppRoutes.CustomerVehicles.customerIdArg) {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val customerId = backStackEntry
+                .arguments!!
+                .getInt(AppRoutes.CustomerVehicles.customerIdArg)
+
+            CustomerVehiclesScreen(
+                customerId = customerId,
+                onNavigate = { navController.navigate(it) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // ── Vehicle form ──────────────────────────────────────────────────
+        composable(
+            route = AppRoutes.CustomerVehicleForm.route,
+            arguments = listOf(
+                navArgument(AppRoutes.CustomerVehicleForm.customerIdArg) {
+                    type = NavType.IntType
+                },
+                navArgument(AppRoutes.CustomerVehicleForm.vehicleIdArg) {
+                    type = NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
+            val customerId = backStackEntry
+                .arguments!!
+                .getInt(AppRoutes.CustomerVehicleForm.customerIdArg)
+            val vehicleId = backStackEntry
+                .arguments!!
+                .getInt(AppRoutes.CustomerVehicleForm.vehicleIdArg)
+                .takeIf { it > 0 }
+
+            CustomerVehicleFormScreen(
+                customerId = customerId,
+                vehicleId = vehicleId,
+                onBack = { navController.popBackStack() },
+                onFinish = { navController.popBackStack() }
             )
         }
 

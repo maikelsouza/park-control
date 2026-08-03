@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -43,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -82,14 +82,11 @@ private class BrazilianCurrencyVisualTransformation : VisualTransformation {
             override fun originalToTransformed(offset: Int): Int {
                 val safeOffset = offset.coerceIn(0, digits.length)
                 if (safeOffset == 0) return 0
-
                 var digitCount = 0
                 masked.forEachIndexed { index, char ->
                     if (char.isDigit()) {
                         digitCount++
-                        if (digitCount == safeOffset) {
-                            return index + 1
-                        }
+                        if (digitCount == safeOffset) return index + 1
                     }
                 }
                 return masked.length
@@ -128,11 +125,10 @@ fun ActiveMonthlyCustomersScreen(
 
         val filteredCustomers = uiState.customers.filter { customer ->
             val query = uiState.searchQuery.trim().lowercase(Locale.ROOT)
-            if (query.isBlank()) {
-                true
-            } else {
+            if (query.isBlank()) true
+            else {
                 customer.name.contains(query, ignoreCase = true) ||
-                    customer.plates.any { plate -> plate.contains(query, ignoreCase = true) }
+                    customer.vehicles.any { v -> v.plate.contains(query, ignoreCase = true) }
             }
         }
 
@@ -184,11 +180,8 @@ fun ActiveMonthlyCustomersScreen(
 
                 item {
                     if (filteredCustomers.isEmpty()) {
-                        if (uiState.searchQuery.isBlank()) {
-                            Text("Nenhum cliente cadastrado")
-                        } else {
-                            Text("Nenhum cliente encontrado para essa pesquisa")
-                        }
+                        if (uiState.searchQuery.isBlank()) Text("Nenhum cliente cadastrado")
+                        else Text("Nenhum cliente encontrado para essa pesquisa")
                     } else {
                         Text("Clientes ativos: ${filteredCustomers.size}")
                     }
@@ -203,21 +196,31 @@ fun ActiveMonthlyCustomersScreen(
                             modifier = Modifier.padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val primaryPlate = customer.plates.firstOrNull().orEmpty()
-                            val extraPlates = (customer.plates.size - 1).coerceAtLeast(0)
+                            val primaryVehicle = customer.vehicles.firstOrNull()
 
                             Text(
                                 text = customer.name,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(
-                                text = if (extraPlates > 0) {
-                                    "Placa principal: $primaryPlate (+$extraPlates)"
-                                } else {
-                                    "Placa principal: $primaryPlate"
-                                },
-                            )
+
+                            if (primaryVehicle != null) {
+                                val extra = (customer.vehicles.size - 1).coerceAtLeast(0)
+                                Text(
+                                    text = buildString {
+                                        append("${primaryVehicle.brand} ${primaryVehicle.model}".trim())
+                                        if (primaryVehicle.plate.isNotBlank()) append(" • ${primaryVehicle.plate}")
+                                        if (extra > 0) append(" (+$extra)")
+                                    }
+                                )
+                            } else {
+                                Text(
+                                    text = "Nenhum veículo cadastrado",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
                             if (customer.isMonthly) {
                                 Text("Mensalidade: ${customer.monthlyFeeCents.toCurrency()}")
                                 Text(
@@ -240,11 +243,17 @@ fun ActiveMonthlyCustomersScreen(
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                IconButton(
-                                    onClick = {
-                                        onNavigate(AppRoutes.MonthlyCustomerForm.createRoute(customer.id))
-                                    }
-                                ) {
+                                IconButton(onClick = {
+                                    onNavigate(AppRoutes.CustomerVehicles.createRoute(customer.id))
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.DirectionsCar,
+                                        contentDescription = "Veículos"
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    onNavigate(AppRoutes.MonthlyCustomerForm.createRoute(customer.id))
+                                }) {
                                     Icon(
                                         imageVector = Icons.Rounded.Edit,
                                         contentDescription = "Editar"
@@ -286,14 +295,10 @@ fun ActiveMonthlyCustomersScreen(
                                 viewModel.inactivateCustomer(customerIdToInactivate!!)
                                 customerIdToInactivate = null
                             }
-                        ) {
-                            Text("Inativar")
-                        }
+                        ) { Text("Inativar") }
                     },
                     dismissButton = {
-                        TextButton(onClick = { customerIdToInactivate = null }) {
-                            Text("Cancelar")
-                        }
+                        TextButton(onClick = { customerIdToInactivate = null }) { Text("Cancelar") }
                     }
                 )
             }
@@ -307,7 +312,8 @@ fun MonthlyCustomerFormScreen(
     onNavigate: (String) -> Unit,
     customerId: Int?,
     onBack: () -> Unit,
-    onSaveSuccess: (String) -> Unit
+    onSaveSuccess: (String) -> Unit,
+    onNewCustomerSaved: (Int) -> Unit = {}
 ) {
     AppDrawerScaffold(
         currentRoute = AppRoutes.MonthlyCustomers.route,
@@ -328,7 +334,6 @@ fun MonthlyCustomerFormScreen(
         var isMonthly by rememberSaveable(customerId) { mutableStateOf(true) }
         var monthlyFee by rememberSaveable(customerId) { mutableStateOf("") }
         var dueDay by rememberSaveable(customerId) { mutableStateOf("") }
-        val plates = remember(customerId) { mutableStateListOf("") }
         var didPrefill by rememberSaveable(customerId) { mutableStateOf(false) }
         var showInactivateDialog by remember { mutableStateOf(false) }
         var dueDayMenuExpanded by remember { mutableStateOf(false) }
@@ -346,8 +351,6 @@ fun MonthlyCustomerFormScreen(
                 isMonthly = customer.isMonthly
                 monthlyFee = customer.monthlyFeeCents.toMoneyDigitsInput()
                 dueDay = customer.dueDay?.toString().orEmpty()
-                plates.clear()
-                plates.addAll(customer.plates.ifEmpty { listOf("") })
                 didPrefill = true
             }
         }
@@ -362,9 +365,16 @@ fun MonthlyCustomerFormScreen(
         LaunchedEffect(uiState.successMessage) {
             uiState.successMessage?.let { message ->
                 viewModel.clearSuccessMessage()
-                if (message.isNotBlank()) {
+                if (message.isNotBlank() && uiState.savedCustomerId == null) {
                     onSaveSuccess(message)
                 }
+            }
+        }
+
+        LaunchedEffect(uiState.savedCustomerId) {
+            uiState.savedCustomerId?.let { newId ->
+                viewModel.clearSavedCustomerId()
+                onNewCustomerSaved(newId)
             }
         }
 
@@ -386,7 +396,10 @@ fun MonthlyCustomerFormScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onBack) {
-                            Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Voltar")
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = "Voltar"
+                            )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -503,38 +516,20 @@ fun MonthlyCustomerFormScreen(
                         }
                     }
 
-                    Text("Placas")
-                    plates.forEachIndexed { index, plate ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                    if (customerId != null) {
+                        OutlinedButton(
+                            onClick = {
+                                onNavigate(AppRoutes.CustomerVehicles.createRoute(customerId))
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            OutlinedTextField(
-                                value = plate,
-                                onValueChange = { plates[index] = it },
-                                label = {
-                                    Text(
-                                        if (index == 0) {
-                                            "Placa principal *"
-                                        } else {
-                                            "Placa ${index + 1}"
-                                        }
-                                    )
-                                },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true
+                            Icon(
+                                imageVector = Icons.Rounded.DirectionsCar,
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp)
                             )
-
-                            if (plates.size > 1) {
-                                TextButton(onClick = { plates.removeAt(index) }) {
-                                    Text("Remover")
-                                }
-                            }
+                            Text("Gerenciar Veículos")
                         }
-                    }
-
-                    OutlinedButton(onClick = { plates.add("") }) {
-                        Text("Adicionar placa")
                     }
                 }
 
@@ -558,8 +553,7 @@ fun MonthlyCustomerFormScreen(
                                 email = email,
                                 isMonthly = isMonthly,
                                 monthlyFee = monthlyFee,
-                                dueDay = dueDay,
-                                plates = plates.toList()
+                                dueDay = dueDay
                             )
                         },
                         enabled = !uiState.isLoading
@@ -588,14 +582,10 @@ fun MonthlyCustomerFormScreen(
                                 showInactivateDialog = false
                                 onBack()
                             }
-                        ) {
-                            Text("Inativar")
-                        }
+                        ) { Text("Inativar") }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showInactivateDialog = false }) {
-                            Text("Cancelar")
-                        }
+                        TextButton(onClick = { showInactivateDialog = false }) { Text("Cancelar") }
                     }
                 )
             }
@@ -620,12 +610,9 @@ private fun String.onlyMoneyDigits(): String = filter(Char::isDigit)
 private fun String.sanitizeEmailInput(): String {
     val allowedChars = buildString(length) {
         for (char in this@sanitizeEmailInput.lowercase(Locale.ROOT)) {
-            if (char.isLetterOrDigit() || char in setOf('@', '.', '_', '-', '+')) {
-                append(char)
-            }
+            if (char.isLetterOrDigit() || char in setOf('@', '.', '_', '-', '+')) append(char)
         }
     }
-
     val parts = allowedChars.split('@', limit = 2)
     return when {
         parts.size == 1 -> parts[0].trim()
@@ -635,14 +622,12 @@ private fun String.sanitizeEmailInput(): String {
 
 private fun String.looksLikeEmail(): Boolean {
     if (isBlank()) return false
-    val regex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
-    return regex.matches(trim())
+    return Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$").matches(trim())
 }
 
 private fun String.toBrazilianCurrencyMask(): String {
     val digits = onlyMoneyDigits().take(11)
     if (digits.isEmpty()) return ""
-
     val cents = digits.toLongOrNull() ?: return ""
     val integerPart = cents / 100
     val decimalPart = (cents % 100).toString().padStart(2, '0')
@@ -650,7 +635,6 @@ private fun String.toBrazilianCurrencyMask(): String {
     val integerFormatted = NumberFormat.getIntegerInstance(ptBrLocale).format(integerPart)
     return "R$ $integerFormatted,$decimalPart"
 }
-
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true, showSystemUi = true)

@@ -6,8 +6,7 @@ import com.parkcontrol.features.monthlyCustomers.domain.repository.MonthlyCustom
 class SaveMonthlyCustomerUseCase(
     private val repository: MonthlyCustomerRepository
 ) {
-    suspend operator fun invoke(customer: MonthlyCustomer) {
+    suspend operator fun invoke(customer: MonthlyCustomer): Int =
         repository.addMonthlyCustomer(customer)
-    }
 }
 

@@ -10,7 +10,7 @@ interface MonthlyCustomerRepository {
 
     suspend fun getMonthlyCustomerById(id: Int): MonthlyCustomer?
 
-    suspend fun addMonthlyCustomer(customer: MonthlyCustomer)
+    suspend fun addMonthlyCustomer(customer: MonthlyCustomer): Int
 
     suspend fun updateMonthlyCustomer(customer: MonthlyCustomer)
 

@@ -28,7 +28,6 @@ class ActiveMonthlyCustomersViewModel(
     private val allowedDueDays = setOf(1, 5, 10, 15, 20, 25)
     private val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
-    // UI State
     private val _uiState = MutableStateFlow(MonthlyCustomersUiState())
     val uiState: StateFlow<MonthlyCustomersUiState> = _uiState
 
@@ -53,14 +52,10 @@ class ActiveMonthlyCustomersViewModel(
             _uiState.value = _uiState.value.copy(selectedCustomer = null)
             return
         }
-
         viewModelScope.launch {
             val customer = getMonthlyCustomerByIdUseCase(customerId)
             _uiState.value = if (customer == null) {
-                _uiState.value.copy(
-                    selectedCustomer = null,
-                    errorMessage = "Cliente nao encontrado"
-                )
+                _uiState.value.copy(selectedCustomer = null, errorMessage = "Cliente nao encontrado")
             } else {
                 _uiState.value.copy(selectedCustomer = customer)
             }
@@ -74,70 +69,41 @@ class ActiveMonthlyCustomersViewModel(
         email: String,
         isMonthly: Boolean,
         monthlyFee: String,
-        dueDay: String,
-        plates: List<String>
+        dueDay: String
     ) {
-        val normalizedPlates = plates
-            .map { it.trim().uppercase() }
-            .filter { it.isNotBlank() }
-            .distinct()
+        val normalizedName = name.trim()
 
-        if (name.isBlank() || normalizedPlates.isEmpty()) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Nome e pelo menos uma placa sao obrigatorios"
-            )
+        if (normalizedName.isBlank()) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Nome é obrigatório")
             return
         }
 
-        val normalizedName = name.trim()
         val normalizedPhone = phone.filter(Char::isDigit).take(11)
         val normalizedEmail = email.trim().lowercase(Locale.ROOT)
 
         if (normalizedEmail.isNotBlank() && !emailRegex.matches(normalizedEmail)) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Email invalido"
-            )
-            return
-        }
-
-        val existingPlates = _uiState.value.customers
-            .asSequence()
-            .filter { customer -> customer.id != customerId }
-            .flatMap { customer -> customer.plates.asSequence() }
-            .map { plate -> plate.trim().uppercase() }
-            .toSet()
-        val duplicatePlate = normalizedPlates.firstOrNull { plate -> plate in existingPlates }
-        if (duplicatePlate != null) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Placa ja cadastrada: $duplicatePlate"
-            )
+            _uiState.value = _uiState.value.copy(errorMessage = "Email invalido")
             return
         }
 
         if (normalizedPhone.isNotBlank()) {
-            val phoneAlreadyUsed = _uiState.value.customers
-                .any { customer ->
-                    customer.id != customerId &&
-                        customer.phone.filter(Char::isDigit).take(11) == normalizedPhone
-                }
+            val phoneAlreadyUsed = _uiState.value.customers.any { customer ->
+                customer.id != customerId &&
+                    customer.phone.filter(Char::isDigit).take(11) == normalizedPhone
+            }
             if (phoneAlreadyUsed) {
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = "Telefone ja cadastrado para outro cliente"
-                )
+                _uiState.value = _uiState.value.copy(errorMessage = "Telefone ja cadastrado para outro cliente")
                 return
             }
         }
 
         if (normalizedEmail.isNotBlank()) {
-            val emailAlreadyUsed = _uiState.value.customers
-                .any { customer ->
-                    customer.id != customerId &&
-                        customer.email.trim().lowercase(Locale.ROOT) == normalizedEmail
-                }
+            val emailAlreadyUsed = _uiState.value.customers.any { customer ->
+                customer.id != customerId &&
+                    customer.email.trim().lowercase(Locale.ROOT) == normalizedEmail
+            }
             if (emailAlreadyUsed) {
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = "Email ja cadastrado para outro cliente"
-                )
+                _uiState.value = _uiState.value.copy(errorMessage = "Email ja cadastrado para outro cliente")
                 return
             }
         }
@@ -154,7 +120,6 @@ class ActiveMonthlyCustomersViewModel(
                     return
                 }
             }
-
             dueDayValue = if (dueDay.isBlank()) {
                 null
             } else {
@@ -180,19 +145,21 @@ class ActiveMonthlyCustomersViewModel(
                     isMonthly = isMonthly,
                     monthlyFeeCents = monthlyFeeCents,
                     dueDay = dueDayValue,
-                    plates = normalizedPlates,
                     isActive = true,
                     createdAt = existing?.createdAt ?: now,
                     updatedAt = now
                 )
 
                 if (customerId == null) {
-                    saveMonthlyCustomerUseCase(customer)
+                    val newId = saveMonthlyCustomerUseCase(customer)
+                    _uiState.value = _uiState.value.copy(
+                        savedCustomerId = newId,
+                        successMessage = "Cliente salvo com sucesso"
+                    )
                 } else {
                     updateMonthlyCustomerUseCase(customer)
+                    _uiState.value = _uiState.value.copy(successMessage = "Cliente atualizado com sucesso")
                 }
-
-                _uiState.value = _uiState.value.copy(successMessage = if (customerId == null) "Cliente salvo com sucesso" else "Cliente atualizado com sucesso")
             } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = "Erro ao salvar cliente")
             }
@@ -218,24 +185,19 @@ class ActiveMonthlyCustomersViewModel(
         _uiState.value = _uiState.value.copy(successMessage = null)
     }
 
+    fun clearSavedCustomerId() {
+        _uiState.value = _uiState.value.copy(savedCustomerId = null)
+    }
+
     private fun parseFeeToCents(input: String): Int? {
         val digitsOnly = input.filter(Char::isDigit)
         if (digitsOnly.isNotEmpty() && digitsOnly.length == input.trim().length) {
             return digitsOnly.toLongOrNull()?.takeIf { it <= Int.MAX_VALUE }?.toInt()
         }
-
-        val normalized = input
-            .replace("R$", "")
-            .trim()
-            .replace(',', '.')
-
+        val normalized = input.replace("R$", "").trim().replace(',', '.')
         val value = normalized.toBigDecimalOrNull() ?: return null
         if (value < BigDecimal.ZERO) return null
-
-        return value
-            .multiply(BigDecimal(100))
-            .setScale(0, RoundingMode.HALF_UP)
-            .toInt()
+        return value.multiply(BigDecimal(100)).setScale(0, RoundingMode.HALF_UP).toInt()
     }
 }
 

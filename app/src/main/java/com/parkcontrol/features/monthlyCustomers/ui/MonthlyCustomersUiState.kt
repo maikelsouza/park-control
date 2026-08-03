@@ -8,6 +8,6 @@ data class MonthlyCustomersUiState(
     val selectedCustomer: MonthlyCustomer? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    val savedCustomerId: Int? = null   // ID of newly created customer — triggers navigate to vehicles
 )
-
