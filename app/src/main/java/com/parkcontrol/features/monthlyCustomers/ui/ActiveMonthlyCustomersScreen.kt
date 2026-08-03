@@ -72,6 +72,11 @@ import java.util.Locale
 
 private val CurrencyMaskTransformation = BrazilianCurrencyVisualTransformation()
 private val DueDayOptions = listOf("1", "5", "10", "15", "20", "25")
+private val SexoOptions = listOf(
+    "" to "Nao informar",
+    "masculino" to "Masculino",
+    "feminino" to "Feminino"
+)
 
 private class BrazilianCurrencyVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
@@ -330,12 +335,14 @@ fun MonthlyCustomerFormScreen(
         var name by rememberSaveable(customerId) { mutableStateOf("") }
         var phone by rememberSaveable(customerId) { mutableStateOf("") }
         var email by rememberSaveable(customerId) { mutableStateOf("") }
+        var sexo by rememberSaveable(customerId) { mutableStateOf("") }
         var emailFieldTouched by rememberSaveable(customerId) { mutableStateOf(false) }
         var isMonthly by rememberSaveable(customerId) { mutableStateOf(true) }
         var monthlyFee by rememberSaveable(customerId) { mutableStateOf("") }
         var dueDay by rememberSaveable(customerId) { mutableStateOf("") }
         var didPrefill by rememberSaveable(customerId) { mutableStateOf(false) }
         var showInactivateDialog by remember { mutableStateOf(false) }
+        var sexoMenuExpanded by remember { mutableStateOf(false) }
         var dueDayMenuExpanded by remember { mutableStateOf(false) }
 
         LaunchedEffect(customerId) {
@@ -348,6 +355,7 @@ fun MonthlyCustomerFormScreen(
                 name = customer.name
                 phone = customer.phone.onlyPhoneDigits().take(11)
                 email = customer.email
+                sexo = customer.sexo.orEmpty()
                 isMonthly = customer.isMonthly
                 monthlyFee = customer.monthlyFeeCents.toMoneyDigitsInput()
                 dueDay = customer.dueDay?.toString().orEmpty()
@@ -448,6 +456,44 @@ fun MonthlyCustomerFormScreen(
                             autoCorrect = false
                         )
                     )
+
+                    ExposedDropdownMenuBox(
+                        expanded = sexoMenuExpanded,
+                        onExpandedChange = { sexoMenuExpanded = !sexoMenuExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = sexo.toSexoLabel(),
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Sexo (opcional)") },
+                            placeholder = { Text("Selecione") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = sexoMenuExpanded)
+                            },
+                            modifier = Modifier
+                                .menuAnchor(
+                                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                    enabled = true
+                                )
+                                .fillMaxWidth(),
+                            singleLine = true
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = sexoMenuExpanded,
+                            onDismissRequest = { sexoMenuExpanded = false }
+                        ) {
+                            SexoOptions.forEach { (value, label) ->
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        sexo = value
+                                        sexoMenuExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -551,6 +597,7 @@ fun MonthlyCustomerFormScreen(
                                 name = name,
                                 phone = phone.onlyPhoneDigits().take(11),
                                 email = email,
+                                sexo = sexo,
                                 isMonthly = isMonthly,
                                 monthlyFee = monthlyFee,
                                 dueDay = dueDay
@@ -623,6 +670,14 @@ private fun String.sanitizeEmailInput(): String {
 private fun String.looksLikeEmail(): Boolean {
     if (isBlank()) return false
     return Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$").matches(trim())
+}
+
+private fun String.toSexoLabel(): String {
+    return when (trim().lowercase(Locale.ROOT)) {
+        "masculino" -> "Masculino"
+        "feminino" -> "Feminino"
+        else -> ""
+    }
 }
 
 private fun String.toBrazilianCurrencyMask(): String {

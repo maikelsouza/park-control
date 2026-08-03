@@ -14,7 +14,7 @@ import com.parkcontrol.features.parking.data.local.entity.ParkingRecordEntity
 
 @Database(
     entities = [MonthlyCustomerEntity::class, CustomerVehicleEntity::class, ParkingRecordEntity::class],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

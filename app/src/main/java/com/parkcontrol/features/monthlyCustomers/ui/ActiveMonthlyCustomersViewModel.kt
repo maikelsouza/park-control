@@ -67,6 +67,7 @@ class ActiveMonthlyCustomersViewModel(
         name: String,
         phone: String,
         email: String,
+        sexo: String,
         isMonthly: Boolean,
         monthlyFee: String,
         dueDay: String
@@ -80,6 +81,12 @@ class ActiveMonthlyCustomersViewModel(
 
         val normalizedPhone = phone.filter(Char::isDigit).take(11)
         val normalizedEmail = email.trim().lowercase(Locale.ROOT)
+        val normalizedSexo = sexo.trim().lowercase(Locale.ROOT).ifBlank { null }
+
+        if (normalizedSexo != null && normalizedSexo !in setOf("masculino", "feminino")) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Sexo invalido")
+            return
+        }
 
         if (normalizedEmail.isNotBlank() && !emailRegex.matches(normalizedEmail)) {
             _uiState.value = _uiState.value.copy(errorMessage = "Email invalido")
@@ -142,6 +149,7 @@ class ActiveMonthlyCustomersViewModel(
                     name = normalizedName,
                     phone = normalizedPhone,
                     email = normalizedEmail,
+                    sexo = normalizedSexo,
                     isMonthly = isMonthly,
                     monthlyFeeCents = monthlyFeeCents,
                     dueDay = dueDayValue,

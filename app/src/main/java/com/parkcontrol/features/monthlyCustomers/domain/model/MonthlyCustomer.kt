@@ -5,6 +5,7 @@ data class MonthlyCustomer(
     val name: String,
     val phone: String,
     val email: String = "",
+    val sexo: String? = null,
     val isMonthly: Boolean = true,
     val monthlyFeeCents: Int? = null,
     val dueDay: Int? = null,
