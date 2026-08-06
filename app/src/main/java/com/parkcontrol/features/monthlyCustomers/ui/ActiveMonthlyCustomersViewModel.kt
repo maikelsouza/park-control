@@ -72,6 +72,7 @@ class ActiveMonthlyCustomersViewModel(
         monthlyFee: String,
         dueDay: String
     ) {
+
         val normalizedName = name.trim()
 
         if (normalizedName.isBlank()) {
@@ -119,21 +120,22 @@ class ActiveMonthlyCustomersViewModel(
         val dueDayValue: Int?
 
         if (isMonthly) {
-            monthlyFeeCents = if (monthlyFee.isBlank()) {
-                null
-            } else {
-                parseFeeToCents(monthlyFee) ?: run {
-                    _uiState.value = _uiState.value.copy(errorMessage = "Valor mensal invalido")
-                    return
-                }
+            if (monthlyFee.isBlank()) {
+                _uiState.value = _uiState.value.copy(errorMessage = "Mensalidade é obrigatória para cliente mensalista")
+                return
             }
-            dueDayValue = if (dueDay.isBlank()) {
-                null
-            } else {
-                dueDay.toIntOrNull()?.takeIf { it in allowedDueDays } ?: run {
-                    _uiState.value = _uiState.value.copy(errorMessage = "Vencimento deve ser: 1, 5, 10, 15, 20 ou 25")
-                    return
-                }
+            if (dueDay.isBlank()) {
+                _uiState.value = _uiState.value.copy(errorMessage = "Dia de vencimento é obrigatório para cliente mensalista")
+                return
+            }
+
+            monthlyFeeCents = parseFeeToCents(monthlyFee) ?: run {
+                _uiState.value = _uiState.value.copy(errorMessage = "Valor mensal invalido")
+                return
+            }
+            dueDayValue = dueDay.toIntOrNull()?.takeIf { it in allowedDueDays } ?: run {
+                _uiState.value = _uiState.value.copy(errorMessage = "Vencimento deve ser: 1, 5, 10, 15, 20 ou 25")
+                return
             }
         } else {
             monthlyFeeCents = null
