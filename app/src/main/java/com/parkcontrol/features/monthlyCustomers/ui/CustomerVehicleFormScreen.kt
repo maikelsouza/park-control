@@ -55,8 +55,8 @@ private val CommonBrands = listOf(
 )
 
 private val CommonColors = listOf(
-    "Branco", "Prata", "Preto", "Cinza", "Vermelho", "Azul",
-    "Amarelo", "Verde", "Laranja", "Marrom", "Roxo", "Bege", "Outro"
+    "Amarelo", "Azul", "Bege", "Branco", "Cinza", "Laranja",
+    "Marrom", "Prata", "Preto", "Roxo", "Verde", "Vermelho", "Outro"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
