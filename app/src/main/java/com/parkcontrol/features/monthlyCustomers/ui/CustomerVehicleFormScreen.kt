@@ -77,6 +77,7 @@ fun CustomerVehicleFormScreen(
 
     // Form state
     var brand by rememberSaveable(vehicleId) { mutableStateOf("") }
+    var customBrand by rememberSaveable(vehicleId) { mutableStateOf("") }
     var model by rememberSaveable(vehicleId) { mutableStateOf("") }
     var color by rememberSaveable(vehicleId) { mutableStateOf("") }
     var plate by rememberSaveable(vehicleId) { mutableStateOf("") }
@@ -101,7 +102,8 @@ fun CustomerVehicleFormScreen(
     LaunchedEffect(uiState.selectedVehicle, vehicleId) {
         val v = uiState.selectedVehicle
         if (vehicleId != null && v != null && !didPrefill) {
-            brand = v.brand
+            brand = if (v.brand in CommonBrands) v.brand else "Outro"
+            customBrand = if (v.brand !in CommonBrands) v.brand else ""
             model = v.model
             color = v.color
             plate = v.plate
@@ -125,6 +127,7 @@ fun CustomerVehicleFormScreen(
             if (uiState.saveAndAddAnother) {
                 // Reset form for a new vehicle
                 brand = ""
+                customBrand = ""
                 model = ""
                 color = ""
                 plate = ""
@@ -205,6 +208,26 @@ fun CustomerVehicleFormScreen(
                             }
                         }
                     }
+                }
+
+                // ── Marca Customizada (quando "Outro" é selecionado) ──────
+                if (brand == "Outro") {
+                    val customBrandError = getCustomBrandValidationError(customBrand)
+                    OutlinedTextField(
+                        value = customBrand,
+                        onValueChange = { customBrand = it },
+                        label = { Text("Marca *") },
+                        placeholder = { Text("Digite a marca") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                        isError = customBrandError != null,
+                        supportingText = {
+                            if (customBrandError != null) {
+                                Text(customBrandError, color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    )
                 }
 
                 // ── Modelo ─────────────────────────────────────────────────
@@ -326,13 +349,17 @@ fun CustomerVehicleFormScreen(
                     .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
+                val finalBrand = if (brand == "Outro") customBrand else brand
+                val customBrandError = if (brand == "Outro") getCustomBrandValidationError(customBrand) else null
+                val isSaveEnabled = !uiState.isLoading && finalBrand.isNotBlank() && customBrandError == null
+
                 if (vehicleId == null) {
                     OutlinedButton(
                         onClick = {
                             viewModel.saveVehicle(
                                 customerId = customerId,
                                 vehicleId = null,
-                                brand = brand,
+                                brand = finalBrand,
                                 model = model,
                                 color = color,
                                 plate = plate,
@@ -342,7 +369,7 @@ fun CustomerVehicleFormScreen(
                                 addAnother = true
                             )
                         },
-                        enabled = !uiState.isLoading
+                        enabled = isSaveEnabled
                     ) {
                         Text("Salvar e adicionar outro")
                     }
@@ -353,7 +380,7 @@ fun CustomerVehicleFormScreen(
                         viewModel.saveVehicle(
                             customerId = customerId,
                             vehicleId = vehicleId,
-                            brand = brand,
+                            brand = finalBrand,
                             model = model,
                             color = color,
                             plate = plate,
@@ -363,13 +390,69 @@ fun CustomerVehicleFormScreen(
                             addAnother = false
                         )
                     },
-                    enabled = !uiState.isLoading
+                    enabled = isSaveEnabled
                 ) {
                     Text("Finalizar")
                 }
             }
         }
     }
+}
+
+/** Valida se a marca customizada é similar a alguma marca já listada. */
+private fun getCustomBrandValidationError(customBrand: String): String? {
+    if (customBrand.isBlank()) {
+        return "Campo obrigatório"
+    }
+
+    val normalizedCustom = customBrand.trim().lowercase()
+    val brandsWithoutOutro = CommonBrands.filter { it != "Outro" }
+
+    for (listedBrand in brandsWithoutOutro) {
+        val normalizedListed = listedBrand.lowercase()
+        val similarity = calculateSimilarity(normalizedCustom, normalizedListed)
+
+        // Se a similaridade for >= 70%, considera como duplicada
+        if (similarity >= 0.7) {
+            return "Marca similar a \"$listedBrand\" já está listada"
+        }
+    }
+
+    return null
+}
+
+/** Calcula a similaridade entre duas strings (0 a 1, onde 1 é idêntica). */
+private fun calculateSimilarity(str1: String, str2: String): Double {
+    val maxLength = maxOf(str1.length, str2.length)
+    if (maxLength == 0) return 1.0
+
+    val distance = levenshteinDistance(str1, str2)
+    return 1.0 - (distance.toDouble() / maxLength)
+}
+
+/** Calcula a distância de Levenshtein entre duas strings. */
+private fun levenshteinDistance(str1: String, str2: String): Int {
+    val matrix = Array(str1.length + 1) { IntArray(str2.length + 1) }
+
+    for (i in 0..str1.length) {
+        matrix[i][0] = i
+    }
+    for (j in 0..str2.length) {
+        matrix[0][j] = j
+    }
+
+    for (i in 1..str1.length) {
+        for (j in 1..str2.length) {
+            val cost = if (str1[i - 1] == str2[j - 1]) 0 else 1
+            matrix[i][j] = minOf(
+                matrix[i - 1][j] + 1,      // deletion
+                matrix[i][j - 1] + 1,      // insertion
+                matrix[i - 1][j - 1] + cost // substitution
+            )
+        }
+    }
+
+    return matrix[str1.length][str2.length]
 }
 
 /** Formats the raw typing into the appropriate plate mask. */
