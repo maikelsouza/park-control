@@ -26,10 +26,10 @@ class ParkedVehiclesViewModel(
     private val _plateFilter = mutableStateOf("")
     val plateFilter: State<String> = _plateFilter
 
-    private val _startDateFilter = mutableStateOf("")
+    private val _startDateFilter = mutableStateOf(LocalDate.now().withDayOfMonth(1).format(dateFormatter))
     val startDateFilter: State<String> = _startDateFilter
 
-    private val _endDateFilter = mutableStateOf("")
+    private val _endDateFilter = mutableStateOf(LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).format(dateFormatter))
     val endDateFilter: State<String> = _endDateFilter
 
     private val _filterError = mutableStateOf<String?>(null)
