@@ -15,6 +15,7 @@ import com.parkcontrol.features.monthlyCustomers.ui.CustomerVehiclesScreen
 import com.parkcontrol.features.monthlyCustomers.ui.InactiveMonthlyCustomersScreen
 import com.parkcontrol.features.monthlyCustomers.ui.MonthlyCustomerFormScreen
 import com.parkcontrol.features.about.ui.AboutScreen
+import com.parkcontrol.features.agreements.ui.AgreementsScreen
 import com.parkcontrol.features.parking.ui.ParkedVehiclesScreen
 import com.parkcontrol.features.parking.ui.ParkingScreen
 import com.parkcontrol.features.settings.ui.SettingsScreen
@@ -189,6 +190,14 @@ fun AppNavigation(
                 }
             )
 
+        }
+
+        composable(AppRoutes.Agreements.route) {
+            AgreementsScreen(
+                onNavigate = {
+                    navController.navigate(it)
+                }
+            )
         }
 
         composable(AppRoutes.About.route) {

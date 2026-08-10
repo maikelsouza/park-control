@@ -9,6 +9,7 @@ import androidx.compose.material.icons.rounded.HowToReg
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocalParking
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Business
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Person
@@ -193,6 +194,25 @@ fun AppDrawerScaffold(
                         Icon(
                             imageVector = Icons.Rounded.Settings,
                             contentDescription = "Configurações"
+                        )
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = {
+                        Text("Convênios")
+                    },
+                    selected = currentRoute == AppRoutes.Agreements.route,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        onNavigate(AppRoutes.Agreements.route)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Business,
+                            contentDescription = "Convênios"
                         )
                     }
                 )
