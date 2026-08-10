@@ -196,7 +196,31 @@ fun AppNavigation(
             AgreementsScreen(
                 onNavigate = {
                     navController.navigate(it)
+                },
+                agreementId = null
+            )
+        }
+
+        composable(
+            route = AppRoutes.AgreementForm.route,
+            arguments = listOf(
+                navArgument(AppRoutes.AgreementForm.agreementIdArg) {
+                    type = NavType.IntType
+                    defaultValue = -1
                 }
+            )
+        ) { backStackEntry ->
+            val agreementId = backStackEntry
+                .arguments
+                ?.getInt(AppRoutes.AgreementForm.agreementIdArg)
+                ?.takeIf { it > 0 }
+
+            AgreementsScreen(
+                onNavigate = {
+                    navController.navigate(it)
+                },
+                agreementId = agreementId,
+                onFinish = { navController.popBackStack() }
             )
         }
 

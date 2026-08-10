@@ -28,19 +28,25 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
 
@@ -52,34 +58,96 @@ private val BrazilianStates = listOf(
 
 @Composable
 fun AgreementsScreen(
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    agreementId: Int? = null,
+    onFinish: (() -> Unit)? = null
 ) {
     AppDrawerScaffold(
         currentRoute = AppRoutes.Agreements.route,
         onNavigate = onNavigate
     ) { paddingValues ->
+        val context = LocalContext.current
+        val application = context.applicationContext as android.app.Application
+        val factory = AgreementFormViewModelFactory(application)
+        val viewModel: AgreementFormViewModel = viewModel(factory = factory)
+        val uiState by viewModel.uiState.collectAsState()
+        val snackbarHostState = remember { SnackbarHostState() }
+
         AgreementsFormContent(
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(paddingValues),
+            agreementId = agreementId,
+            snackbarHostState = snackbarHostState,
+            onSave = { data ->
+                viewModel.saveAgreement(
+                    agreementId = agreementId,
+                    name = data.name,
+                    contactName = data.contactName,
+                    phone = data.phone,
+                    email = data.email,
+                    street = data.street,
+                    number = data.number,
+                    complement = data.complement,
+                    city = data.city,
+                    neighborhood = data.neighborhood,
+                    state = data.state,
+                    zipCode = data.zipCode,
+                    discountValue = data.discountValue
+                )
+            },
+            onLoadForEdit = {
+                viewModel.loadAgreementForEdit(agreementId)
+            },
+            selectedAgreement = uiState.selectedAgreement,
+            onErrorConsumed = {
+                viewModel.clearErrorMessage()
+            },
+            onSuccessConsumed = {
+                viewModel.clearSuccessMessage()
+                onFinish?.invoke()
+            },
+            isSaving = uiState.isSaving,
+            errorMessage = uiState.errorMessage,
+            successMessage = uiState.successMessage
         )
     }
 }
 
+private data class AgreementFormData(
+    val name: String,
+    val contactName: String,
+    val phone: String,
+    val email: String,
+    val street: String,
+    val number: String,
+    val complement: String,
+    val city: String,
+    val neighborhood: String,
+    val state: String,
+    val zipCode: String,
+    val discountValue: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AgreementsFormContent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    agreementId: Int?,
+    snackbarHostState: SnackbarHostState,
+    onSave: (AgreementFormData) -> Unit,
+    onLoadForEdit: () -> Unit,
+    selectedAgreement: com.parkcontrol.features.agreements.domain.model.Agreement?,
+    onErrorConsumed: () -> Unit,
+    onSuccessConsumed: () -> Unit,
+    isSaving: Boolean,
+    errorMessage: String?,
+    successMessage: String?
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
-    // General
     var name by rememberSaveable { mutableStateOf("") }
-
-    // Contact
     var contactName by rememberSaveable { mutableStateOf("") }
     var contactPhone by rememberSaveable { mutableStateOf("") }
     var contactEmail by rememberSaveable { mutableStateOf("") }
-
-    // Address
     var street by rememberSaveable { mutableStateOf("") }
     var number by rememberSaveable { mutableStateOf("") }
     var complement by rememberSaveable { mutableStateOf("") }
@@ -88,11 +156,9 @@ private fun AgreementsFormContent(
     var state by rememberSaveable { mutableStateOf("") }
     var stateExpanded by remember { mutableStateOf(false) }
     var zipCode by rememberSaveable { mutableStateOf("") }
-
-    // Discount
     var discountValue by rememberSaveable { mutableStateOf("") }
-
     var showValidation by rememberSaveable { mutableStateOf(false) }
+    var didPrefill by rememberSaveable(agreementId) { mutableStateOf(false) }
 
     val nameError = requiredFieldError(name, showValidation)
     val contactNameError = requiredFieldError(contactName, showValidation)
@@ -114,6 +180,43 @@ private fun AgreementsFormContent(
         zipCode.isNotBlank() &&
         discountValue.isNotBlank()
 
+    LaunchedEffect(agreementId) {
+        onLoadForEdit()
+    }
+
+    LaunchedEffect(selectedAgreement, agreementId) {
+        val agreement = selectedAgreement
+        if (agreementId != null && agreement != null && !didPrefill) {
+            name = agreement.name
+            contactName = agreement.contactName
+            contactPhone = formatPhone(agreement.phone)
+            contactEmail = agreement.email
+            street = agreement.street
+            number = agreement.number
+            complement = agreement.complement
+            neighborhood = agreement.neighborhood
+            city = agreement.city
+            state = agreement.state
+            zipCode = formatZipCode(agreement.zipCode)
+            discountValue = centsToMoneyInput(agreement.discountCents)
+            didPrefill = true
+        }
+    }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onErrorConsumed()
+        }
+    }
+
+    LaunchedEffect(successMessage) {
+        successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onSuccessConsumed()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -122,20 +225,22 @@ private fun AgreementsFormContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
         Text(
-            text = "Convênios",
+            text = if (agreementId == null) "Convênios" else "Editar convênio",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = colorScheme.onBackground
         )
 
         Text(
-            text = "Cadastre os dados do convênio",
+            text = if (agreementId == null) {
+                "Cadastre os dados do convênio"
+            } else {
+                "Atualize os dados do convênio"
+            },
             color = colorScheme.onSurfaceVariant
         )
 
-        // ── Identificação ──────────────────────────────────────────────────────
         SectionCard(title = "Identificação") {
             OutlinedTextField(
                 value = name,
@@ -151,7 +256,6 @@ private fun AgreementsFormContent(
             )
         }
 
-        // ── Contato ────────────────────────────────────────────────────────────
         SectionCard(title = "Contato") {
             OutlinedTextField(
                 value = contactName,
@@ -194,7 +298,6 @@ private fun AgreementsFormContent(
             )
         }
 
-        // ── Endereço ───────────────────────────────────────────────────────────
         SectionCard(title = "Endereço") {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -228,7 +331,7 @@ private fun AgreementsFormContent(
                 value = complement,
                 onValueChange = { complement = it },
                 label = { Text("Complemento") },
-                placeholder = { Text("Apto, sala, bloco…") },
+                placeholder = { Text("Apto, sala, bloco...") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
@@ -320,7 +423,6 @@ private fun AgreementsFormContent(
             )
         }
 
-        // ── Desconto ───────────────────────────────────────────────────────────
         SectionCard(title = "Desconto") {
             OutlinedTextField(
                 value = discountValue,
@@ -337,26 +439,44 @@ private fun AgreementsFormContent(
             )
         }
 
-        // ── Salvar ─────────────────────────────────────────────────────────────
         Button(
             onClick = {
                 showValidation = true
-                if (!isFormValid) return@Button
-                /* TODO: salvar */
+                if (!isFormValid || isSaving) return@Button
+
+                onSave(
+                    AgreementFormData(
+                        name = name,
+                        contactName = contactName,
+                        phone = contactPhone,
+                        email = contactEmail,
+                        street = street,
+                        number = number,
+                        complement = complement,
+                        city = city,
+                        neighborhood = neighborhood,
+                        state = state,
+                        zipCode = zipCode,
+                        discountValue = discountValue
+                    )
+                )
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
+            enabled = !isSaving,
             colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary)
         ) {
             Icon(Icons.Default.Save, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "SALVAR CONVÊNIO",
+                text = if (agreementId == null) "Salvar" else "Atualizar",
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onPrimary
             )
         }
+
+        SnackbarHost(hostState = snackbarHostState)
 
         Spacer(modifier = Modifier.height(8.dp))
     }
@@ -389,6 +509,10 @@ private fun requiredFieldError(value: String, showValidation: Boolean): String? 
     return if (showValidation && value.isBlank()) "Campo obrigatório" else null
 }
 
+private fun centsToMoneyInput(value: Int): String {
+    return "%.2f".format(value / 100.0).replace('.', ',')
+}
+
 private fun formatPhone(input: String): String {
     val digits = input.filter { it.isDigit() }.take(11)
     return buildString {
@@ -407,6 +531,5 @@ private fun formatPhone(input: String): String {
 
 private fun formatZipCode(input: String): String {
     val digits = input.filter { it.isDigit() }.take(8)
-    return if (digits.length > 5) "${digits.substring(0, 5)}-${digits.substring(5)}"
-    else digits
+    return if (digits.length > 5) "${digits.substring(0, 5)}-${digits.substring(5)}" else digits
 }

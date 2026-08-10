@@ -6,6 +6,8 @@ import com.parkcontrol.core.data.repository.ParkingConfigRepositoryImpl
 import com.parkcontrol.core.domain.repository.ParkingConfigRepository
 import com.parkcontrol.core.domain.usecase.GetParkingConfigUseCase
 import com.parkcontrol.core.domain.usecase.SaveParkingConfigUseCase
+import com.parkcontrol.features.agreements.data.repository.AgreementRepositoryImpl
+import com.parkcontrol.features.agreements.domain.repository.AgreementRepository
 import com.parkcontrol.features.monthlyCustomers.data.repository.CustomerVehicleRepositoryImpl
 import com.parkcontrol.features.monthlyCustomers.data.repository.MonthlyCustomerRepositoryImpl
 import com.parkcontrol.features.monthlyCustomers.domain.repository.CustomerVehicleRepository
@@ -28,6 +30,7 @@ object CoreDependencies {
     private var monthlyCustomerRepository: MonthlyCustomerRepository? = null
     private var customerVehicleRepository: CustomerVehicleRepository? = null
     private var parkingRepository: ParkingRepository? = null
+    private var agreementRepository: AgreementRepository? = null
     private var appDatabase: AppDatabase? = null
 
     /**
@@ -75,6 +78,15 @@ object CoreDependencies {
             parkingRepository = ParkingRepositoryImpl(dao)
         }
         return parkingRepository!!
+    }
+
+    fun getAgreementRepository(context: Context): AgreementRepository {
+        if (agreementRepository == null) {
+            val database = getAppDatabase(context)
+            val dao = database.agreementDao()
+            agreementRepository = AgreementRepositoryImpl(dao)
+        }
+        return agreementRepository!!
     }
 
     /**
