@@ -1,5 +1,8 @@
 package com.parkcontrol.features.parking.ui
 
+import android.content.res.Configuration
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,18 +17,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
@@ -34,7 +44,11 @@ import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.model.formatToBrazilian
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +82,8 @@ private fun ParkedVehiclesContent(
     val endDateFilter by viewModel.endDateFilter
     val records by viewModel.filteredRecords
     val filterError by viewModel.filterError
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -100,23 +116,17 @@ private fun ParkedVehiclesContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
+            DateFilterField(
                 value = startDateFilter,
-                onValueChange = viewModel::updateStartDateFilter,
-                label = { Text("Data inicial") },
-                placeholder = { Text("dd/MM/yyyy") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                label = "Data inicial",
+                onClick = { showStartDatePicker = true },
                 modifier = Modifier.weight(1f)
             )
 
-            OutlinedTextField(
+            DateFilterField(
                 value = endDateFilter,
-                onValueChange = viewModel::updateEndDateFilter,
-                label = { Text("Data final") },
-                placeholder = { Text("dd/MM/yyyy") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                label = "Data final",
+                onClick = { showEndDatePicker = true },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -175,6 +185,72 @@ private fun ParkedVehiclesContent(
                 }
             }
         }
+
+        if (showStartDatePicker) {
+            val startDatePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = startDateFilter.toDatePickerMillisOrNull()
+            )
+            PtBrDatePickerDialog(
+                onDismissRequest = { showStartDatePicker = false },
+                onConfirm = {
+                    startDatePickerState.selectedDateMillis
+                        ?.toBrazilianDateOrNull()
+                        ?.let(viewModel::updateStartDateFilter)
+                    showStartDatePicker = false
+                },
+                onDismiss = { showStartDatePicker = false }
+            ) {
+                DatePicker(state = startDatePickerState)
+            }
+        }
+
+        if (showEndDatePicker) {
+            val endDatePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = endDateFilter.toDatePickerMillisOrNull()
+            )
+            PtBrDatePickerDialog(
+                onDismissRequest = { showEndDatePicker = false },
+                onConfirm = {
+                    endDatePickerState.selectedDateMillis
+                        ?.toBrazilianDateOrNull()
+                        ?.let(viewModel::updateEndDateFilter)
+                    showEndDatePicker = false
+                },
+                onDismiss = { showEndDatePicker = false }
+            ) {
+                DatePicker(state = endDatePickerState)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DateFilterField(
+    value: String,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            label = { Text(label) },
+            placeholder = { Text("Selecione") },
+            singleLine = true,
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        // Overlay transparente que captura os cliques antes do TextField
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick
+                )
+        )
     }
 }
 
@@ -254,6 +330,51 @@ private fun formatDuration(entryTime: LocalDateTime): String {
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
     return "%02dh %02dmin".format(hours, minutes)
+}
+
+private fun String.toDatePickerMillisOrNull(): Long? {
+    if (isBlank()) return null
+    return runCatching {
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val localDate = java.time.LocalDate.parse(trim(), formatter)
+        localDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    }.getOrNull()
+}
+
+private fun Long.toBrazilianDateOrNull(): String? {
+    return runCatching {
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        Instant.ofEpochMilli(this)
+            .atOffset(ZoneOffset.UTC)
+            .toLocalDate()
+            .format(formatter)
+    }.getOrNull()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PtBrDatePickerDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val ptBr = Locale.forLanguageTag("pt-BR")
+    val ptBrConfig = Configuration(LocalConfiguration.current).apply { setLocale(ptBr) }
+
+    CompositionLocalProvider(LocalConfiguration provides ptBrConfig) {
+        DatePickerDialog(
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                TextButton(onClick = onConfirm) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Cancelar") }
+            }
+        ) {
+            content()
+        }
+    }
 }
 
 
