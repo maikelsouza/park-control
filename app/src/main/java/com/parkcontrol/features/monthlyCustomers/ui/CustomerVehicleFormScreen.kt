@@ -49,9 +49,12 @@ import com.parkcontrol.features.monthlyCustomers.domain.model.VehicleCategory
 import java.util.Locale
 
 private val CommonBrands = listOf(
-    "Audi", "BMW", "BYD", "Caoa Chery", "Chevrolet", "Citroën", "Fiat", "Ford",
-    "Honda", "Hyundai", "Jeep", "Kia", "Land Rover", "Mercedes-Benz", "Mitsubishi",
-    "Nissan", "Peugeot", "Renault", "Toyota", "Volkswagen", "Volvo", "Outro"
+    "Aprilia", "Audi", "Bajaj", "Benelli", "BMW", "BYD", "Caoa Chery", "Chevrolet",
+    "Citroën", "Dafra", "Ducati", "Fiat", "Ford", "GasGas", "Harley-Davidson",
+    "Haojue", "Honda", "Husqvarna", "Hyundai", "Indian", "Jeep", "Kawasaki", "Kia",
+    "KTM", "Land Rover", "Mercedes-Benz", "Mitsubishi", "Moto Guzzi", "Nissan",
+    "Peugeot", "Renault", "Royal Enfield", "Shineray", "Suzuki", "Toyota", "Triumph",
+    "Volkswagen", "Volvo", "Yamaha", "Outro"
 )
 
 private val CommonColors = listOf(
