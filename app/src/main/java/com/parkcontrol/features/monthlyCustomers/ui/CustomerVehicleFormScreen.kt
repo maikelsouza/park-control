@@ -172,6 +172,35 @@ fun CustomerVehicleFormScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // ── Categoria ──────────────────────────────────────────────
+                ExposedDropdownMenuBox(
+                    expanded = categoryExpanded,
+                    onExpandedChange = { categoryExpanded = !categoryExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = category.displayName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Categoria") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                        modifier = Modifier
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                            .fillMaxWidth(),
+                        singleLine = true
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = { categoryExpanded = false }
+                    ) {
+                        VehicleCategory.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.displayName) },
+                                onClick = { category = option; categoryExpanded = false }
+                            )
+                        }
+                    }
+                }
+
                 // ── Marca ──────────────────────────────────────────────────
                 ExposedDropdownMenuBox(
                     expanded = brandExpanded,
@@ -301,34 +330,6 @@ fun CustomerVehicleFormScreen(
                     supportingText = { Text(plateType.displayName) }
                 )
 
-                // ── Categoria ──────────────────────────────────────────────
-                ExposedDropdownMenuBox(
-                    expanded = categoryExpanded,
-                    onExpandedChange = { categoryExpanded = !categoryExpanded }
-                ) {
-                    OutlinedTextField(
-                        value = category.displayName,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Categoria") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                        modifier = Modifier
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
-                            .fillMaxWidth(),
-                        singleLine = true
-                    )
-                    ExposedDropdownMenu(
-                        expanded = categoryExpanded,
-                        onDismissRequest = { categoryExpanded = false }
-                    ) {
-                        VehicleCategory.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option.displayName) },
-                                onClick = { category = option; categoryExpanded = false }
-                            )
-                        }
-                    }
-                }
 
                 // ── Vaga ───────────────────────────────────────────────────
                 OutlinedTextField(
