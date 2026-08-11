@@ -18,6 +18,7 @@ fun AgreementEntity.toDomain(): Agreement {
         state = state,
         zipCode = zipCode,
         discountCents = discountCents,
+        isActive = isActive,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -38,6 +39,7 @@ fun Agreement.toEntity(): AgreementEntity {
         state = state,
         zipCode = zipCode,
         discountCents = discountCents,
+        isActive = isActive,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

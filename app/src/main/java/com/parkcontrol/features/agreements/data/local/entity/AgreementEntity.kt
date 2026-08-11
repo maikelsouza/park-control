@@ -19,6 +19,7 @@ data class AgreementEntity(
     val state: String,
     val zipCode: String,
     val discountCents: Int,
+    val isActive: Boolean = true,
     val createdAt: Long,
     val updatedAt: Long
 )

@@ -96,6 +96,7 @@ class AgreementFormViewModel(
                     state = normalizedState,
                     zipCode = normalizedZipCode,
                     discountCents = discountCents,
+                    isActive = existing?.isActive ?: true,
                     createdAt = existing?.createdAt ?: now,
                     updatedAt = now
                 )

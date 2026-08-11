@@ -45,6 +45,10 @@ sealed class AppRoutes(
 
     data object Agreements : AppRoutes("agreements")
 
+    data object AgreementsActive : AppRoutes("agreements/active")
+
+    data object AgreementsInactive : AppRoutes("agreements/inactive")
+
     data object AgreementForm : AppRoutes("agreements/form?agreementId={agreementId}") {
         const val agreementIdArg = "agreementId"
 

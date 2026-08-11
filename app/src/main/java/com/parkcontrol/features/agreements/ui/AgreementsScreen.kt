@@ -63,7 +63,7 @@ fun AgreementsScreen(
     onFinish: (() -> Unit)? = null
 ) {
     AppDrawerScaffold(
-        currentRoute = AppRoutes.Agreements.route,
+        currentRoute = AppRoutes.AgreementsActive.route,
         onNavigate = onNavigate
     ) { paddingValues ->
         val context = LocalContext.current
@@ -226,7 +226,7 @@ private fun AgreementsFormContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = if (agreementId == null) "Convênios" else "Editar convênio",
+            text = if (agreementId == null) "Novo convênio" else "Editar convênio",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = colorScheme.onBackground
@@ -234,7 +234,7 @@ private fun AgreementsFormContent(
 
         Text(
             text = if (agreementId == null) {
-                "Cadastre os dados do convênio"
+                "Cadastre os dados de um novo convênio"
             } else {
                 "Atualize os dados do convênio"
             },

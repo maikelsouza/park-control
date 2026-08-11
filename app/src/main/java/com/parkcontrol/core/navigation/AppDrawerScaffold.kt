@@ -49,6 +49,7 @@ fun AppDrawerScaffold(
     val scope = rememberCoroutineScope()
     
     val isMonthlyCustomersExpanded = remember { mutableStateOf(false) }
+    val isAgreementsExpanded = remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -202,12 +203,11 @@ fun AppDrawerScaffold(
                     label = {
                         Text("Convênios")
                     },
-                    selected = currentRoute == AppRoutes.Agreements.route,
+                    selected = currentRoute == AppRoutes.Agreements.route ||
+                        currentRoute == AppRoutes.AgreementsActive.route ||
+                        currentRoute == AppRoutes.AgreementsInactive.route,
                     onClick = {
-                        scope.launch {
-                            drawerState.close()
-                        }
-                        onNavigate(AppRoutes.Agreements.route)
+                        isAgreementsExpanded.value = !isAgreementsExpanded.value
                     },
                     icon = {
                         Icon(
@@ -216,6 +216,48 @@ fun AppDrawerScaffold(
                         )
                     }
                 )
+
+                if (isAgreementsExpanded.value) {
+                    NavigationDrawerItem(
+                        label = {
+                            Text("Ativos")
+                        },
+                        selected = currentRoute == AppRoutes.AgreementsActive.route,
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                            }
+                            onNavigate(AppRoutes.AgreementsActive.route)
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Rounded.HowToReg,
+                                contentDescription = "Ativos"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 32.dp)
+                    )
+
+                    NavigationDrawerItem(
+                        label = {
+                            Text("Inativos")
+                        },
+                        selected = currentRoute == AppRoutes.AgreementsInactive.route,
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                            }
+                            onNavigate(AppRoutes.AgreementsInactive.route)
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Rounded.PersonOff,
+                                contentDescription = "Inativos"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 32.dp)
+                    )
+                }
 
                 NavigationDrawerItem(
                     label = {
