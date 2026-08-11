@@ -3,6 +3,7 @@ package com.parkcontrol.features.parking.ui
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.parkcontrol.core.di.CoreDependencies
 import com.parkcontrol.features.parking.domain.usecase.CalculateParkingPriceUseCase
 
 class ParkingViewModelFactory(
@@ -15,8 +16,9 @@ class ParkingViewModelFactory(
         return when {
             modelClass.isAssignableFrom(ParkingViewModel::class.java) -> {
                 ParkingViewModel(
-                    application = application,
-                    calculateParkingPrice = calculateParkingPriceUseCase
+                    application,
+                    CoreDependencies.createGetActiveAgreementsUseCase(application),
+                    calculateParkingPriceUseCase
                 ) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

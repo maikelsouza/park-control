@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -31,12 +34,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -128,6 +136,9 @@ private fun VehiclePlateSection(
     viewModel: ParkingViewModel
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val activeAgreements = viewModel.activeAgreements.value
+    val selectedAgreement = viewModel.selectedAgreement.value
+    var agreementExpanded by remember { mutableStateOf(false) }
 
     Text(
         text = "Placa do Veículo",
@@ -170,6 +181,76 @@ private fun VehiclePlateSection(
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp)
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = selectedAgreement?.name.orEmpty(),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Convênio") },
+            placeholder = { Text(if (activeAgreements.isEmpty()) "Nenhum convênio ativo" else "Selecione um convênio") },
+            modifier = Modifier
+                .fillMaxWidth(),
+            singleLine = true,
+            trailingIcon = { Text("▾") }
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    enabled = activeAgreements.isNotEmpty(),
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { agreementExpanded = !agreementExpanded }
+                )
+        )
+        DropdownMenu(
+            expanded = agreementExpanded,
+            onDismissRequest = { agreementExpanded = false },
+            modifier = Modifier.fillMaxWidth(0.95f)
+        ) {
+            activeAgreements.forEach { agreement ->
+                DropdownMenuItem(
+                    text = {
+                        Text("${agreement.name} - R$ %.2f".format(agreement.discountCents / 100.0))
+                    },
+                    onClick = {
+                        viewModel.selectAgreement(agreement)
+                        agreementExpanded = false
+                    }
+                )
+            }
+        }
+    }
+
+    Text(
+        text = if (activeAgreements.isEmpty()) {
+            "Nenhum convênio ativo encontrado"
+        } else {
+            "Convênios ativos: ${activeAgreements.size}"
+        },
+        fontSize = 12.sp,
+        color = colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Start,
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    OutlinedTextField(
+        value = viewModel.selectedAgreementValue.value,
+        onValueChange = {},
+        label = { Text("Valor do convênio") },
+        placeholder = { Text("Selecione um convênio") },
+        readOnly = true,
+        singleLine = true,
+        shape = RoundedCornerShape(8.dp),
+        textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+        modifier = Modifier
+            .fillMaxWidth()
     )
 
     Spacer(modifier = Modifier.height(12.dp))

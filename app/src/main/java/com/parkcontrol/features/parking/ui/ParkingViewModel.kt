@@ -6,14 +6,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.parkcontrol.core.di.CoreDependencies
+import com.parkcontrol.features.agreements.domain.model.Agreement
+import com.parkcontrol.features.agreements.domain.usecase.GetActiveAgreementsUseCase
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.usecase.CalculateParkingPriceUseCase
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.time.LocalDateTime
+import java.util.Locale
 
 class ParkingViewModel(
     application: Application,
+    private val getActiveAgreementsUseCase: GetActiveAgreementsUseCase,
     private val calculateParkingPrice:
         CalculateParkingPriceUseCase = CalculateParkingPriceUseCase()
 ) : AndroidViewModel(application) {
@@ -58,6 +63,15 @@ class ParkingViewModel(
     private val _openRecordSuggestions = mutableStateOf<List<ParkingRecord>>(emptyList())
     val openRecordSuggestions: State<List<ParkingRecord>> = _openRecordSuggestions
 
+    private val _activeAgreements = mutableStateOf<List<Agreement>>(emptyList())
+    val activeAgreements: State<List<Agreement>> = _activeAgreements
+
+    private val _selectedAgreement = mutableStateOf<Agreement?>(null)
+    val selectedAgreement: State<Agreement?> = _selectedAgreement
+
+    private val _selectedAgreementValue = mutableStateOf("")
+    val selectedAgreementValue: State<String> = _selectedAgreementValue
+
     private val _first30MinutesPrice = mutableStateOf("5.00")
     val first30MinutesPrice: State<String> = _first30MinutesPrice
 
@@ -68,8 +82,8 @@ class ParkingViewModel(
         // load persisted parking config and keep UI state in sync
         viewModelScope.launch {
             getParkingConfigUseCase().collect { config ->
-                _first30MinutesPrice.value = String.format(java.util.Locale.US, "%.2f", config.first30MinutesPrice)
-                _pricePerHour.value = String.format(java.util.Locale.US, "%.2f", config.pricePerHour)
+                _first30MinutesPrice.value = String.format(Locale.US, "%.2f", config.first30MinutesPrice)
+                _pricePerHour.value = String.format(Locale.US, "%.2f", config.pricePerHour)
             }
         }
 
@@ -78,6 +92,13 @@ class ParkingViewModel(
                 _parkingRecords.value = records
                 syncSelectedRecord(records)
                 refreshOpenRecordSuggestions()
+            }
+        }
+
+        viewModelScope.launch {
+            getActiveAgreementsUseCase().collect { agreements ->
+                _activeAgreements.value = agreements
+                syncSelectedAgreement(agreements)
             }
         }
     }
@@ -100,10 +121,17 @@ class ParkingViewModel(
         refreshOpenRecordSuggestions()
     }
 
+    fun selectAgreement(agreement: Agreement) {
+        _selectedAgreement.value = agreement
+        _selectedAgreementValue.value = agreement.discountCents.toCurrency()
+    }
+
     fun onScreenOpened() {
         _selectedRecord.value = null
         _licensePlate.value = ""
         _phone.value = ""
+        _selectedAgreement.value = null
+        _selectedAgreementValue.value = ""
         refreshOpenRecordSuggestions()
     }
 
@@ -202,6 +230,19 @@ class ParkingViewModel(
     private fun syncSelectedRecord(records: List<ParkingRecord>) {
         val selectedId = _selectedRecord.value?.id ?: return
         _selectedRecord.value = records.firstOrNull { it.id == selectedId }
+    }
+
+    private fun syncSelectedAgreement(agreements: List<Agreement>) {
+        val selectedId = _selectedAgreement.value?.id ?: return
+        val updatedSelection = agreements.firstOrNull { it.id == selectedId }
+        _selectedAgreement.value = updatedSelection
+        _selectedAgreementValue.value = updatedSelection?.discountCents?.toCurrency().orEmpty()
+    }
+
+    private fun Int.toCurrency(): String {
+        val ptBrLocale = Locale.Builder().setLanguage("pt").setRegion("BR").build()
+        val formatter = NumberFormat.getCurrencyInstance(ptBrLocale)
+        return formatter.format(this / 100.0)
     }
 
 }

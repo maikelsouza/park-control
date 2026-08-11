@@ -8,6 +8,7 @@ import com.parkcontrol.core.domain.usecase.GetParkingConfigUseCase
 import com.parkcontrol.core.domain.usecase.SaveParkingConfigUseCase
 import com.parkcontrol.features.agreements.data.repository.AgreementRepositoryImpl
 import com.parkcontrol.features.agreements.domain.repository.AgreementRepository
+import com.parkcontrol.features.agreements.domain.usecase.GetActiveAgreementsUseCase
 import com.parkcontrol.features.monthlyCustomers.data.repository.CustomerVehicleRepositoryImpl
 import com.parkcontrol.features.monthlyCustomers.data.repository.MonthlyCustomerRepositoryImpl
 import com.parkcontrol.features.monthlyCustomers.domain.repository.CustomerVehicleRepository
@@ -94,6 +95,10 @@ object CoreDependencies {
      */
     fun createGetParkingConfigUseCase(context: Context): GetParkingConfigUseCase {
         return GetParkingConfigUseCase(getParkingConfigRepository(context))
+    }
+
+    fun createGetActiveAgreementsUseCase(context: Context): GetActiveAgreementsUseCase {
+        return GetActiveAgreementsUseCase(getAgreementRepository(context))
     }
 
     /**
