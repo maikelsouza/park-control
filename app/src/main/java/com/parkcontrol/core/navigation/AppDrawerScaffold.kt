@@ -10,6 +10,8 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocalParking
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Business
+import androidx.compose.material.icons.rounded.Handshake
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Person
@@ -231,7 +233,7 @@ fun AppDrawerScaffold(
                         },
                         icon = {
                             Icon(
-                                imageVector = Icons.Rounded.HowToReg,
+                                imageVector = Icons.Rounded.Handshake,
                                 contentDescription = "Ativos"
                             )
                         },
@@ -251,7 +253,7 @@ fun AppDrawerScaffold(
                         },
                         icon = {
                             Icon(
-                                imageVector = Icons.Rounded.PersonOff,
+                                imageVector = Icons.Rounded.Block,
                                 contentDescription = "Inativos"
                             )
                         },
