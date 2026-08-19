@@ -49,6 +49,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
+import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
+import com.parkcontrol.core.ui.masks.ZipCodeMaskTransformation
+import com.parkcontrol.core.ui.masks.onlyPhoneDigits
+import com.parkcontrol.core.ui.masks.onlyZipCodeDigits
 
 private val BrazilianStates = listOf(
     "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO",
@@ -189,7 +193,7 @@ private fun AgreementsFormContent(
         if (agreementId != null && agreement != null && !didPrefill) {
             name = agreement.name
             contactName = agreement.contactName
-            contactPhone = formatPhone(agreement.phone)
+            contactPhone = agreement.phone.onlyPhoneDigits().take(11)
             contactEmail = agreement.email
             street = agreement.street
             number = agreement.number
@@ -197,7 +201,7 @@ private fun AgreementsFormContent(
             neighborhood = agreement.neighborhood
             city = agreement.city
             state = agreement.state
-            zipCode = formatZipCode(agreement.zipCode)
+            zipCode = agreement.zipCode.onlyZipCodeDigits().take(8)
             discountValue = centsToMoneyInput(agreement.discountCents)
             didPrefill = true
         }
@@ -274,12 +278,13 @@ private fun AgreementsFormContent(
 
             OutlinedTextField(
                 value = contactPhone,
-                onValueChange = { contactPhone = formatPhone(it) },
+                onValueChange = { typed -> contactPhone = typed.onlyPhoneDigits().take(11) },
                 label = { Text("Telefone *") },
                 placeholder = { Text("(00) 00000-0000") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                visualTransformation = PhoneMaskTransformation,
                 isError = phoneError != null,
                 supportingText = {
                     if (phoneError != null) Text(phoneError, color = colorScheme.error)
@@ -410,12 +415,13 @@ private fun AgreementsFormContent(
 
             OutlinedTextField(
                 value = zipCode,
-                onValueChange = { zipCode = formatZipCode(it) },
+                onValueChange = { typed -> zipCode = typed.onlyZipCodeDigits().take(8) },
                 label = { Text("CEP *") },
                 placeholder = { Text("00000-000") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = ZipCodeMaskTransformation,
                 isError = zipCodeError != null,
                 supportingText = {
                     if (zipCodeError != null) Text(zipCodeError, color = colorScheme.error)
@@ -513,23 +519,4 @@ private fun centsToMoneyInput(value: Int): String {
     return "%.2f".format(value / 100.0).replace('.', ',')
 }
 
-private fun formatPhone(input: String): String {
-    val digits = input.filter { it.isDigit() }.take(11)
-    return buildString {
-        digits.forEachIndexed { i, c ->
-            when (i) {
-                0 -> append("($c")
-                1 -> append(c)
-                2 -> append(") $c")
-                6 -> if (digits.length == 11) append("$c-") else append(c)
-                7 -> if (digits.length <= 10) append("$c-") else append(c)
-                else -> append(c)
-            }
-        }
-    }
-}
 
-private fun formatZipCode(input: String): String {
-    val digits = input.filter { it.isDigit() }.take(8)
-    return if (digits.length > 5) "${digits.substring(0, 5)}-${digits.substring(5)}" else digits
-}
