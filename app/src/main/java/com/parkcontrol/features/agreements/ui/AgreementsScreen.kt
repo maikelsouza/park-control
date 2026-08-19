@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,6 +27,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
@@ -39,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -64,7 +67,8 @@ private val BrazilianStates = listOf(
 fun AgreementsScreen(
     onNavigate: (String) -> Unit,
     agreementId: Int? = null,
-    onFinish: (() -> Unit)? = null
+    onFinish: (() -> Unit)? = null,
+    onBack: (() -> Unit)? = null
 ) {
     AppDrawerScaffold(
         currentRoute = AppRoutes.AgreementsActive.route,
@@ -81,6 +85,7 @@ fun AgreementsScreen(
             modifier = Modifier.padding(paddingValues),
             agreementId = agreementId,
             snackbarHostState = snackbarHostState,
+            onBack = onBack ?: onFinish,
             onSave = { data ->
                 viewModel.saveAgreement(
                     agreementId = agreementId,
@@ -137,6 +142,7 @@ private fun AgreementsFormContent(
     modifier: Modifier = Modifier,
     agreementId: Int?,
     snackbarHostState: SnackbarHostState,
+    onBack: (() -> Unit)? = null,
     onSave: (AgreementFormData) -> Unit,
     onLoadForEdit: () -> Unit,
     selectedAgreement: com.parkcontrol.features.agreements.domain.model.Agreement?,
@@ -229,12 +235,23 @@ private fun AgreementsFormContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = if (agreementId == null) "Novo convênio" else "Editar convênio",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = colorScheme.onBackground
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onBack != null) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "Voltar"
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                text = if (agreementId == null) "Novo convênio" else "Editar convênio",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorScheme.onBackground
+            )
+        }
 
         Text(
             text = if (agreementId == null) {

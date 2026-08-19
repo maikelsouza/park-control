@@ -240,7 +240,8 @@ fun AppNavigation(
                     navController.navigate(it)
                 },
                 agreementId = agreementId,
-                onFinish = { navController.popBackStack() }
+                onFinish = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         }
 
