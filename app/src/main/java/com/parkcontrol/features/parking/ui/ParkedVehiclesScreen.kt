@@ -317,11 +317,30 @@ private fun ParkedVehicleCard(record: ParkingRecord) {
                 )
             }
 
-            record.amountPaid?.let {
-                Text(
-                    text = "Valor: R$ %.2f".format(it),
-                    color = colorScheme.onSurfaceVariant
-                )
+            record.amountPaid?.let { paid ->
+                val discount = record.discountAmount ?: 0.0
+                val grossAmount = paid + discount
+
+                if (discount > 0.0) {
+                    Text(
+                        text = "Valor estacionamento: R$ %.2f".format(grossAmount),
+                        color = colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Desconto: - R$ %.2f".format(discount),
+                        color = colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Valor pago: R$ %.2f".format(paid),
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = "Valor: R$ %.2f".format(paid),
+                        color = colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             if (record.phone.isNotBlank()) {

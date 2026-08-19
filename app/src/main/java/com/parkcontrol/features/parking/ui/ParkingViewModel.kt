@@ -150,11 +150,16 @@ class ParkingViewModel(
                 return@launch
             }
 
+            val discountAmount = _selectedAgreement.value
+                ?.discountCents
+                ?.let { it / 100.0 }
+
             val newRecord = ParkingRecord(
                 licensePlate = normalizedPlate,
                 phone = _phone.value.filter(Char::isDigit).take(11),
                 entryTime = LocalDateTime.now(),
-                status = ParkingStatus.ESTACIONADO
+                status = ParkingStatus.ESTACIONADO,
+                discountAmount = discountAmount
             )
 
             _selectedRecord.value = newRecord
@@ -163,6 +168,8 @@ class ParkingViewModel(
 
             _licensePlate.value = ""
             _phone.value = ""
+            _selectedAgreement.value = null
+            _selectedAgreementValue.value = ""
             refreshOpenRecordSuggestions()
         }
     }
@@ -184,10 +191,13 @@ class ParkingViewModel(
                 pricePerHour = pricePerHour
         )
 
+        val discountAmount = record.discountAmount ?: 0.0
+        val finalAmount = (amountPaid - discountAmount).coerceAtLeast(0.0)
+
         val updatedRecord = record.copy(
             exitTime = exitTime,
             status = ParkingStatus.FINALIZADO,
-            amountPaid = amountPaid
+            amountPaid = finalAmount
         )
 
         viewModelScope.launch {
