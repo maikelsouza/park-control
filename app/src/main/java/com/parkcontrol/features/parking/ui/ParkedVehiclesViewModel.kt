@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.parkcontrol.core.di.CoreDependencies
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
+import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.usecase.FilterParkedVehiclesUseCase
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -31,6 +32,9 @@ class ParkedVehiclesViewModel(
 
     private val _endDateFilter = mutableStateOf(LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).format(dateFormatter))
     val endDateFilter: State<String> = _endDateFilter
+
+    private val _statusFilter = mutableStateOf<ParkingStatus?>(null)
+    val statusFilter: State<ParkingStatus?> = _statusFilter
 
     private val _filterError = mutableStateOf<String?>(null)
     val filterError: State<String?> = _filterError
@@ -61,10 +65,15 @@ class ParkedVehiclesViewModel(
         _endDateFilter.value = value
     }
 
+    fun updateStatusFilter(value: ParkingStatus?) {
+        _statusFilter.value = value
+    }
+
     fun clearFilters() {
         _plateFilter.value = ""
         _startDateFilter.value = ""
         _endDateFilter.value = ""
+        _statusFilter.value = null
         _filterError.value = null
         applyFilters()
     }
@@ -87,7 +96,8 @@ class ParkedVehiclesViewModel(
             records = allRecords,
             plateQuery = _plateFilter.value,
             startDate = startDate,
-            endDate = endDate
+            endDate = endDate,
+            statusFilter = _statusFilter.value
         )
     }
 

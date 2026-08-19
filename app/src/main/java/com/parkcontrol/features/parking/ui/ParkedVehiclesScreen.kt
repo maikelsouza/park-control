@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -80,6 +81,7 @@ private fun ParkedVehiclesContent(
     val plateFilter by viewModel.plateFilter
     val startDateFilter by viewModel.startDateFilter
     val endDateFilter by viewModel.endDateFilter
+    val statusFilter by viewModel.statusFilter
     val records by viewModel.filteredRecords
     val filterError by viewModel.filterError
     var showStartDatePicker by remember { mutableStateOf(false) }
@@ -128,6 +130,27 @@ private fun ParkedVehiclesContent(
                 label = "Data final",
                 onClick = { showEndDatePicker = true },
                 modifier = Modifier.weight(1f)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = statusFilter == null,
+                onClick = { viewModel.updateStatusFilter(null) },
+                label = { Text("Todos") }
+            )
+            FilterChip(
+                selected = statusFilter == ParkingStatus.ESTACIONADO,
+                onClick = { viewModel.updateStatusFilter(ParkingStatus.ESTACIONADO) },
+                label = { Text(ParkingStatus.ESTACIONADO.label) }
+            )
+            FilterChip(
+                selected = statusFilter == ParkingStatus.FINALIZADO,
+                onClick = { viewModel.updateStatusFilter(ParkingStatus.FINALIZADO) },
+                label = { Text(ParkingStatus.FINALIZADO.label) }
             )
         }
 
