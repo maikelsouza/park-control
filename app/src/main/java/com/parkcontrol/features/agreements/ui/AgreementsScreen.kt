@@ -321,43 +321,43 @@ private fun AgreementsFormContent(
         }
 
         SectionCard(title = "Endereço") {
+            OutlinedTextField(
+                value = street,
+                onValueChange = { street = it },
+                label = { Text("Rua *") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                isError = streetError != null,
+                supportingText = {
+                    if (streetError != null) Text(streetError, color = colorScheme.error)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedTextField(
-                    value = street,
-                    onValueChange = { street = it },
-                    label = { Text("Rua *") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                    isError = streetError != null,
-                    supportingText = {
-                        if (streetError != null) Text(streetError, color = colorScheme.error)
-                    }
-                )
-                OutlinedTextField(
                     value = number,
                     onValueChange = { number = it },
                     label = { Text("Número") },
-                    modifier = Modifier.width(96.dp),
+                    modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
+                OutlinedTextField(
+                    value = complement,
+                    onValueChange = { complement = it },
+                    label = { Text("Complemento") },
+                    placeholder = { Text("Apto, sala, bloco...") },
+                    modifier = Modifier.weight(2f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = complement,
-                onValueChange = { complement = it },
-                label = { Text("Complemento") },
-                placeholder = { Text("Apto, sala, bloco...") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
-            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -376,54 +376,54 @@ private fun AgreementsFormContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
+            OutlinedTextField(
+                value = city,
+                onValueChange = { city = it },
+                label = { Text("Cidade *") },
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                isError = cityError != null,
+                supportingText = {
+                    if (cityError != null) Text(cityError, color = colorScheme.error)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = stateExpanded,
+                onExpandedChange = { stateExpanded = !stateExpanded },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = city,
-                    onValueChange = { city = it },
-                    label = { Text("Cidade *") },
-                    modifier = Modifier.weight(1f),
+                    value = state,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Estado *") },
+                    placeholder = { Text("UF") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = stateExpanded) },
+                    modifier = Modifier
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                        .fillMaxWidth(),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                    isError = cityError != null,
+                    isError = stateError != null,
                     supportingText = {
-                        if (cityError != null) Text(cityError, color = colorScheme.error)
+                        if (stateError != null) Text(stateError, color = colorScheme.error)
                     }
                 )
-                ExposedDropdownMenuBox(
+                ExposedDropdownMenu(
                     expanded = stateExpanded,
-                    onExpandedChange = { stateExpanded = !stateExpanded },
-                    modifier = Modifier.width(120.dp)
+                    onDismissRequest = { stateExpanded = false }
                 ) {
-                    OutlinedTextField(
-                        value = state,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Estado *") },
-                        placeholder = { Text("UF") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = stateExpanded) },
-                        modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
-                        singleLine = true,
-                        isError = stateError != null,
-                        supportingText = {
-                            if (stateError != null) Text(stateError, color = colorScheme.error)
-                        }
-                    )
-                    ExposedDropdownMenu(
-                        expanded = stateExpanded,
-                        onDismissRequest = { stateExpanded = false }
-                    ) {
-                        BrazilianStates.forEach { uf ->
-                            DropdownMenuItem(
-                                text = { Text(uf) },
-                                onClick = {
-                                    state = uf
-                                    stateExpanded = false
-                                }
-                            )
-                        }
+                    BrazilianStates.forEach { uf ->
+                        DropdownMenuItem(
+                            text = { Text(uf) },
+                            onClick = {
+                                state = uf
+                                stateExpanded = false
+                            }
+                        )
                     }
                 }
             }
