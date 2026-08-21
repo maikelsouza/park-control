@@ -11,7 +11,6 @@ import com.parkcontrol.core.domain.model.ParkingConfig
 import com.parkcontrol.core.domain.usecase.GetParkingConfigUseCase
 import com.parkcontrol.core.domain.usecase.SaveParkingConfigUseCase
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 class SettingsViewModel(
     private val getParkingConfigUseCase: GetParkingConfigUseCase,
@@ -26,35 +25,35 @@ class SettingsViewModel(
         application = application
     )
 
-    var first30Minutes by mutableStateOf("5.00")
+    var first30Minutes by mutableStateOf("500")
         private set
 
-    var hourlyRate by mutableStateOf("7.00")
+    var hourlyRate by mutableStateOf("700")
         private set
 
     init {
         // collect stored settings and update UI state
         viewModelScope.launch {
             getParkingConfigUseCase().collect { config ->
-                // format as decimal with dot
-                first30Minutes = String.format(Locale.US, "%.2f", config.first30MinutesPrice)
-                hourlyRate = String.format(Locale.US, "%.2f", config.pricePerHour)
+                // format as digits representing cents, e.g. 5.00 -> "500"
+                first30Minutes = config.first30MinutesPrice.toCentsDigits()
+                hourlyRate = config.pricePerHour.toCentsDigits()
             }
         }
     }
 
     fun onFirst30MinutesChange(value: String) {
-        first30Minutes = value
+        first30Minutes = value.filter(Char::isDigit).take(11)
     }
 
     fun onHourlyRateChange(value: String) {
-        hourlyRate = value
+        hourlyRate = value.filter(Char::isDigit).take(11)
     }
 
     fun saveSettings() {
         viewModelScope.launch {
-            val first30 = first30Minutes.replace(',', '.').toDoubleOrNull()
-            val hourly = hourlyRate.replace(',', '.').toDoubleOrNull()
+            val first30 = first30Minutes.filter(Char::isDigit).toLongOrNull()?.let { it / 100.0 }
+            val hourly = hourlyRate.filter(Char::isDigit).toLongOrNull()?.let { it / 100.0 }
 
             if (first30 != null && hourly != null) {
                 // Validation
@@ -71,5 +70,10 @@ class SettingsViewModel(
                 saveParkingConfigUseCase(config)
             }
         }
+    }
+
+    private fun Double.toCentsDigits(): String {
+        val cents = Math.round(this * 100.0)
+        return cents.toString()
     }
 }

@@ -10,8 +10,6 @@ import com.parkcontrol.features.agreements.domain.usecase.UpdateAgreementUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 class AgreementFormViewModel(
     application: Application,
@@ -65,7 +63,7 @@ class AgreementFormViewModel(
         val normalizedNeighborhood = neighborhood.trim()
         val normalizedState = state.trim().uppercase().take(2)
         val normalizedZipCode = zipCode.filter(Char::isDigit).take(8)
-        val discountCents = parseMoneyToCents(discountValue)
+        val discountCents = discountValue.filter(Char::isDigit).toIntOrNull()
 
         if (normalizedName.isBlank() || normalizedContactName.isBlank() || normalizedPhone.isBlank() ||
             normalizedStreet.isBlank() || normalizedCity.isBlank() || normalizedNeighborhood.isBlank() ||
@@ -129,19 +127,6 @@ class AgreementFormViewModel(
 
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
-    }
-
-    private fun parseMoneyToCents(value: String): Int? {
-        val normalized = value
-            .replace("R$", "")
-            .trim()
-            .replace('.', ' ')
-            .replace(',', '.')
-            .replace(" ", "")
-
-        val decimal = normalized.toBigDecimalOrNull() ?: return null
-        if (decimal < BigDecimal.ZERO) return null
-        return decimal.multiply(BigDecimal(100)).setScale(0, RoundingMode.HALF_UP).toInt()
     }
 }
 

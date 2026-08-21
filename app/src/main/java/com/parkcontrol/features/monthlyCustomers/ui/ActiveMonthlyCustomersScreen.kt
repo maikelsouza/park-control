@@ -51,26 +51,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
+import com.parkcontrol.core.ui.masks.CurrencyMaskTransformation
 import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
+import com.parkcontrol.core.ui.masks.onlyMoneyDigits
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.masks.toBrazilianPhoneMask
 import com.parkcontrol.core.ui.theme.ParkControlTheme
 import java.text.NumberFormat
 import java.util.Locale
 
-private val CurrencyMaskTransformation = BrazilianCurrencyVisualTransformation()
 private val DueDayOptions = listOf("1", "5", "10", "15", "20", "25")
 private val SexoOptions = listOf(
     "" to "Nao informar",
@@ -78,34 +75,6 @@ private val SexoOptions = listOf(
     "feminino" to "Feminino"
 )
 
-private class BrazilianCurrencyVisualTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val digits = text.text.onlyMoneyDigits().take(11)
-        val masked = digits.toBrazilianCurrencyMask()
-
-        val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                val safeOffset = offset.coerceIn(0, digits.length)
-                if (safeOffset == 0) return 0
-                var digitCount = 0
-                masked.forEachIndexed { index, char ->
-                    if (char.isDigit()) {
-                        digitCount++
-                        if (digitCount == safeOffset) return index + 1
-                    }
-                }
-                return masked.length
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                val safeOffset = offset.coerceIn(0, masked.length)
-                return masked.take(safeOffset).count(Char::isDigit).coerceAtMost(digits.length)
-            }
-        }
-
-        return TransformedText(AnnotatedString(masked), offsetMapping)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -652,7 +621,6 @@ private fun Int?.toMoneyDigitsInput(): String {
     return this.toString()
 }
 
-private fun String.onlyMoneyDigits(): String = filter(Char::isDigit)
 
 private fun String.sanitizeEmailInput(): String {
     val allowedChars = buildString(length) {
@@ -680,16 +648,6 @@ private fun String.toSexoLabel(): String {
     }
 }
 
-private fun String.toBrazilianCurrencyMask(): String {
-    val digits = onlyMoneyDigits().take(11)
-    if (digits.isEmpty()) return ""
-    val cents = digits.toLongOrNull() ?: return ""
-    val integerPart = cents / 100
-    val decimalPart = (cents % 100).toString().padStart(2, '0')
-    val ptBrLocale = Locale.Builder().setLanguage("pt").setRegion("BR").build()
-    val integerFormatted = NumberFormat.getIntegerInstance(ptBrLocale).format(integerPart)
-    return "R$ $integerFormatted,$decimalPart"
-}
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true, showSystemUi = true)

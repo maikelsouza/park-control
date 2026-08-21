@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -26,10 +27,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
+import com.parkcontrol.core.ui.masks.CurrencyMaskTransformation
+import com.parkcontrol.core.ui.masks.toBrazilianCurrencyMask
 
 @Composable
 fun SettingsScreen(
@@ -113,7 +117,10 @@ fun SettingsEntryScreen(
                         viewModel.onFirst30MinutesChange(it)
                     },
                     label = { Text("Valor (R$)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyMaskTransformation
                 )
             }
         }
@@ -152,7 +159,10 @@ fun SettingsEntryScreen(
                         viewModel.onHourlyRateChange(it)
                     },
                     label = { Text("Valor por Hora (R$)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyMaskTransformation
                 )
             }
         }
@@ -184,7 +194,7 @@ fun SettingsEntryScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("Até 30 minutos:")
-                    Text("R$ ${viewModel.first30Minutes}")
+                    Text(viewModel.first30Minutes.toBrazilianCurrencyMask())
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -194,7 +204,7 @@ fun SettingsEntryScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("Após 30 minutos:")
-                    Text("R$ ${viewModel.hourlyRate} por hora")
+                    Text("${viewModel.hourlyRate.toBrazilianCurrencyMask()} por hora")
                 }
             }
         }

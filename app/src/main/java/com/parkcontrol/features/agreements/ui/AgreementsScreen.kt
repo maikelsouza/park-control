@@ -52,8 +52,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
+import com.parkcontrol.core.ui.masks.CurrencyMaskTransformation
 import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
 import com.parkcontrol.core.ui.masks.ZipCodeMaskTransformation
+import com.parkcontrol.core.ui.masks.onlyMoneyDigits
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.masks.onlyZipCodeDigits
 
@@ -208,7 +210,7 @@ private fun AgreementsFormContent(
             city = agreement.city
             state = agreement.state
             zipCode = agreement.zipCode.onlyZipCodeDigits().take(8)
-            discountValue = centsToMoneyInput(agreement.discountCents)
+            discountValue = agreement.discountCents.toString()
             didPrefill = true
         }
     }
@@ -449,12 +451,13 @@ private fun AgreementsFormContent(
         SectionCard(title = "Desconto") {
             OutlinedTextField(
                 value = discountValue,
-                onValueChange = { discountValue = it },
+                onValueChange = { typed -> discountValue = typed.onlyMoneyDigits().take(11) },
                 label = { Text("Valor de desconto (R$) *") },
                 placeholder = { Text("Ex: 5,00") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = CurrencyMaskTransformation,
                 isError = discountError != null,
                 supportingText = {
                     if (discountError != null) Text(discountError, color = colorScheme.error)
@@ -532,8 +535,5 @@ private fun requiredFieldError(value: String, showValidation: Boolean): String? 
     return if (showValidation && value.isBlank()) "Campo obrigatório" else null
 }
 
-private fun centsToMoneyInput(value: Int): String {
-    return "%.2f".format(value / 100.0).replace('.', ',')
-}
 
 
