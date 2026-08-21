@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
+import com.parkcontrol.core.ui.masks.CurrencyMaskTransformation
 import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.theme.ParkControlTheme
@@ -240,15 +241,45 @@ private fun VehiclePlateSection(
 
     Spacer(modifier = Modifier.height(12.dp))
 
+    val hasSelectedAgreement = selectedAgreement != null
+
     OutlinedTextField(
         value = viewModel.selectedAgreementValue.value,
         onValueChange = {},
         label = { Text("Valor do convênio") },
         placeholder = { Text("Selecione um convênio") },
         readOnly = true,
+        enabled = hasSelectedAgreement,
         singleLine = true,
         shape = RoundedCornerShape(8.dp),
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+        modifier = Modifier
+            .fillMaxWidth()
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    OutlinedTextField(
+        value = viewModel.manualDiscount.value,
+        onValueChange = viewModel::updateManualDiscount,
+        label = { Text("Valor do desconto") },
+        placeholder = { Text("Digite um valor de desconto") },
+        enabled = !hasSelectedAgreement,
+        singleLine = true,
+        shape = RoundedCornerShape(8.dp),
+        textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        visualTransformation = CurrencyMaskTransformation,
+        supportingText = {
+            Text(
+                text = if (hasSelectedAgreement) {
+                    "Desabilitado enquanto um convênio estiver selecionado"
+                } else {
+                    "Informe o valor de desconto manual (sem convênio)"
+                },
+                fontSize = 11.sp
+            )
+        },
         modifier = Modifier
             .fillMaxWidth()
     )

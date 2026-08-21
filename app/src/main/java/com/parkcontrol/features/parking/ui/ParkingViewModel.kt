@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.parkcontrol.core.di.CoreDependencies
+import com.parkcontrol.core.ui.masks.moneyDigitsToDoubleOrNull
+import com.parkcontrol.core.ui.masks.onlyMoneyDigits
 import com.parkcontrol.features.agreements.domain.model.Agreement
 import com.parkcontrol.features.agreements.domain.usecase.GetActiveAgreementsUseCase
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
@@ -72,6 +74,9 @@ class ParkingViewModel(
     private val _selectedAgreementValue = mutableStateOf("")
     val selectedAgreementValue: State<String> = _selectedAgreementValue
 
+    private val _manualDiscount = mutableStateOf("")
+    val manualDiscount: State<String> = _manualDiscount
+
     private val _first30MinutesPrice = mutableStateOf("5.00")
     val first30MinutesPrice: State<String> = _first30MinutesPrice
 
@@ -124,6 +129,14 @@ class ParkingViewModel(
     fun selectAgreement(agreement: Agreement) {
         _selectedAgreement.value = agreement
         _selectedAgreementValue.value = agreement.discountCents.toCurrency()
+        // O valor do convênio substitui qualquer desconto digitado manualmente
+        _manualDiscount.value = ""
+    }
+
+    fun updateManualDiscount(value: String) {
+        // Só é permitido digitar um desconto manual quando nenhum convênio está selecionado
+        if (_selectedAgreement.value != null) return
+        _manualDiscount.value = value.onlyMoneyDigits().take(11)
     }
 
     fun onScreenOpened() {
@@ -132,6 +145,7 @@ class ParkingViewModel(
         _phone.value = ""
         _selectedAgreement.value = null
         _selectedAgreementValue.value = ""
+        _manualDiscount.value = ""
         refreshOpenRecordSuggestions()
     }
 
@@ -150,16 +164,22 @@ class ParkingViewModel(
                 return@launch
             }
 
-            val discountAmount = _selectedAgreement.value
+            val agreementDiscount = _selectedAgreement.value
                 ?.discountCents
                 ?.let { it / 100.0 }
+
+            val manualDiscountValue = _manualDiscount.value.moneyDigitsToDoubleOrNull()
+
+            val discountAmount = agreementDiscount ?: manualDiscountValue
+            val isManualDiscount = agreementDiscount == null && manualDiscountValue != null
 
             val newRecord = ParkingRecord(
                 licensePlate = normalizedPlate,
                 phone = _phone.value.filter(Char::isDigit).take(11),
                 entryTime = LocalDateTime.now(),
                 status = ParkingStatus.ESTACIONADO,
-                discountAmount = discountAmount
+                discountAmount = discountAmount,
+                isManualDiscount = isManualDiscount
             )
 
             _selectedRecord.value = newRecord
@@ -170,6 +190,7 @@ class ParkingViewModel(
             _phone.value = ""
             _selectedAgreement.value = null
             _selectedAgreementValue.value = ""
+            _manualDiscount.value = ""
             refreshOpenRecordSuggestions()
         }
     }

@@ -19,7 +19,8 @@ fun ParkingRecordEntity.toDomain(): ParkingRecord {
         exitTime = exitTimeMillis?.toLocalDateTime(),
         status = ParkingStatus.valueOf(status),
         amountPaid = amountPaid,
-        discountAmount = discountAmount
+        discountAmount = discountAmount,
+        isManualDiscount = isManualDiscount
     )
 }
 
@@ -35,6 +36,7 @@ fun ParkingRecord.toEntity(): ParkingRecordEntity {
         status = status.name,
         amountPaid = amountPaid,
         discountAmount = discountAmount,
+        isManualDiscount = isManualDiscount,
         createdAt = now,
         updatedAt = now
     )

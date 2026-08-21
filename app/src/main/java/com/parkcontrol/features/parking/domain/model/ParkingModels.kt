@@ -13,7 +13,8 @@ data class ParkingRecord(
     val exitTime: LocalDateTime? = null,
     val status: ParkingStatus = ParkingStatus.ESTACIONADO,
     val amountPaid: Double? = null,
-    val discountAmount: Double? = null
+    val discountAmount: Double? = null,
+    val isManualDiscount: Boolean = false
 )
 
 fun LocalDateTime.formatToBrazilian(): String {

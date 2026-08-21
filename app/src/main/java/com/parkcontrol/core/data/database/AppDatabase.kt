@@ -21,7 +21,7 @@ import com.parkcontrol.features.parking.data.local.entity.ParkingRecordEntity
         ParkingRecordEntity::class,
         AgreementEntity::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

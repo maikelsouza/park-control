@@ -34,6 +34,7 @@ data class ParkingRecordEntity(
     val status: String,
     val amountPaid: Double? = null,
     val discountAmount: Double? = null,
+    val isManualDiscount: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long
 )
