@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
+import com.parkcontrol.core.ui.masks.formatPlateInput
+import com.parkcontrol.core.ui.masks.plateInputPlaceholder
+import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.model.formatToBrazilian
@@ -86,6 +89,7 @@ private fun ParkedVehiclesContent(
     val filterError by viewModel.filterError
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
+    var plateTypeFilter by remember { mutableStateOf(PlateType.MERCOSUL) }
 
     Column(
         modifier = modifier
@@ -105,14 +109,32 @@ private fun ParkedVehiclesContent(
             color = colorScheme.onSurfaceVariant
         )
 
+        Text(
+            text = "Tipo de Placa",
+            style = MaterialTheme.typography.labelMedium
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PlateType.entries.forEach { type ->
+                FilterChip(
+                    selected = plateTypeFilter == type,
+                    onClick = {
+                        plateTypeFilter = type
+                        viewModel.updatePlateFilter("")
+                    },
+                    label = { Text(type.displayName) }
+                )
+            }
+        }
+
         OutlinedTextField(
             value = plateFilter,
-            onValueChange = viewModel::updatePlateFilter,
+            onValueChange = { typed -> viewModel.updatePlateFilter(formatPlateInput(typed, plateTypeFilter)) },
             label = { Text("Placa") },
-            placeholder = { Text("Ex: ABC1D23") },
+            placeholder = { Text(plateInputPlaceholder(plateTypeFilter)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
+
 
         Row(
             modifier = Modifier.fillMaxWidth(),

@@ -26,6 +26,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -52,8 +53,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.ui.masks.CurrencyMaskTransformation
 import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
+import com.parkcontrol.core.ui.masks.formatPlateInput
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
+import com.parkcontrol.core.ui.masks.plateInputPlaceholder
 import com.parkcontrol.core.ui.theme.ParkControlTheme
+import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.model.formatToBrazilian
@@ -140,6 +144,7 @@ private fun VehiclePlateSection(
     val activeAgreements = viewModel.activeAgreements.value
     val selectedAgreement = viewModel.selectedAgreement.value
     var agreementExpanded by remember { mutableStateOf(false) }
+    var plateType by remember { mutableStateOf(PlateType.MERCOSUL) }
 
     Text(
         text = "Placa do Veículo",
@@ -149,10 +154,26 @@ private fun VehiclePlateSection(
 
     Spacer(modifier = Modifier.height(8.dp))
 
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        PlateType.entries.forEach { type ->
+            FilterChip(
+                selected = plateType == type,
+                onClick = {
+                    plateType = type
+                    viewModel.updateLicensePlate("")
+                },
+                label = { Text(type.displayName) }
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
     OutlinedTextField(
         value = viewModel.licensePlate.value,
-        onValueChange = viewModel::updateLicensePlate,
+        onValueChange = { typed -> viewModel.updateLicensePlate(formatPlateInput(typed, plateType)) },
         label = { Text("Digite a placa *") },
+        placeholder = { Text(plateInputPlaceholder(plateType)) },
         singleLine = true,
         shape = RoundedCornerShape(8.dp),
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
@@ -165,6 +186,7 @@ private fun VehiclePlateSection(
         modifier = Modifier
             .fillMaxWidth()
     )
+
 
     Spacer(modifier = Modifier.height(12.dp))
 

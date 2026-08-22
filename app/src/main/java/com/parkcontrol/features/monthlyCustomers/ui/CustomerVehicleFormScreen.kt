@@ -44,6 +44,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.parkcontrol.core.ui.masks.formatPlateInput
+import com.parkcontrol.core.ui.masks.plateInputPlaceholder
 import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.monthlyCustomers.domain.model.VehicleCategory
 import java.util.Locale
@@ -322,7 +324,7 @@ fun CustomerVehicleFormScreen(
                     value = plate,
                     onValueChange = { typed -> plate = formatPlateInput(typed, plateType) },
                     label = { Text("Placa *") },
-                    placeholder = { Text(if (plateType == PlateType.MERCOSUL) "ABC1D23" else "ABC-1234") },
+                    placeholder = { Text(plateInputPlaceholder(plateType)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
@@ -457,33 +459,5 @@ private fun levenshteinDistance(str1: String, str2: String): Int {
     }
 
     return matrix[str1.length][str2.length]
-}
-
-/** Formats the raw typing into the appropriate plate mask. */
-private fun formatPlateInput(input: String, plateType: PlateType): String {
-    return when (plateType) {
-        PlateType.MERCOSUL -> {
-            // LLLNLNN — positions: 0-2 letter, 3 digit, 4 letter, 5-6 digit
-            val clean = input.filter { it.isLetterOrDigit() }.uppercase()
-            buildString {
-                for (i in clean.indices) {
-                    if (length >= 7) break
-                    val ch = clean[i]
-                    when (length) {
-                        0, 1, 2 -> if (ch.isLetter()) append(ch)
-                        3 -> if (ch.isDigit()) append(ch)
-                        4 -> if (ch.isLetter()) append(ch)
-                        5, 6 -> if (ch.isDigit()) append(ch)
-                    }
-                }
-            }
-        }
-        PlateType.OUTRA -> {
-            // LLL-NNNN
-            val letters = input.filter { it.isLetter() }.uppercase().take(3)
-            val digits = input.filter { it.isDigit() }.take(4)
-            if (digits.isEmpty()) letters else "$letters-$digits"
-        }
-    }
 }
 
