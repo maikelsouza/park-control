@@ -87,7 +87,7 @@ fun CustomerVehicleFormScreen(
     var color by rememberSaveable(vehicleId) { mutableStateOf("") }
     var plate by rememberSaveable(vehicleId) { mutableStateOf("") }
     var plateType by rememberSaveable(vehicleId) { mutableStateOf(PlateType.MERCOSUL) }
-    var category by rememberSaveable(vehicleId) { mutableStateOf(VehicleCategory.OUTRO) }
+    var category by rememberSaveable(vehicleId) { mutableStateOf<VehicleCategory?>(null) }
     var parkingSpot by rememberSaveable(vehicleId) { mutableStateOf("") }
     var didPrefill by rememberSaveable(vehicleId) { mutableStateOf(false) }
 
@@ -137,7 +137,7 @@ fun CustomerVehicleFormScreen(
                 color = ""
                 plate = ""
                 plateType = PlateType.MERCOSUL
-                category = VehicleCategory.OUTRO
+                category = null
                 parkingSpot = ""
                 didPrefill = false
                 snackbarHostState.showSnackbar(it)
@@ -183,10 +183,11 @@ fun CustomerVehicleFormScreen(
                     onExpandedChange = { categoryExpanded = !categoryExpanded }
                 ) {
                     OutlinedTextField(
-                        value = category.displayName,
+                        value = category?.displayName.orEmpty(),
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Categoria") },
+                        placeholder = { Text("Selecione") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                         modifier = Modifier
                             .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
@@ -370,7 +371,7 @@ fun CustomerVehicleFormScreen(
                                 color = color,
                                 plate = plate,
                                 plateType = plateType,
-                                category = category,
+                                category = category ?: VehicleCategory.OUTRO,
                                 parkingSpot = parkingSpot.takeIf { it.isNotBlank() },
                                 addAnother = true
                             )
@@ -391,7 +392,7 @@ fun CustomerVehicleFormScreen(
                             color = color,
                             plate = plate,
                             plateType = plateType,
-                            category = category,
+                            category = category ?: VehicleCategory.OUTRO,
                             parkingSpot = parkingSpot.takeIf { it.isNotBlank() },
                             addAnother = false
                         )
