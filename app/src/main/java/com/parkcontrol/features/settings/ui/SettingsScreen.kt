@@ -232,7 +232,7 @@ fun SettingsEntryScreen(
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "SALVAR CONFIGURAÇÕES",
+                text = "Salvar",
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onPrimary
             )

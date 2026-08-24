@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -20,8 +21,10 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -548,34 +551,43 @@ fun MonthlyCustomerFormScreen(
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    if (customerId != null) {
+                if (customerId != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
                         TextButton(onClick = { showInactivateDialog = true }) {
                             Text("Inativar")
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
                     }
+                }
 
-                    Button(
-                        onClick = {
-                            viewModel.saveCustomer(
-                                customerId = customerId,
-                                name = name,
-                                phone = phone.onlyPhoneDigits().take(11),
-                                email = email,
-                                sexo = sexo,
-                                isMonthly = isMonthly,
-                                monthlyFee = monthlyFee,
-                                dueDay = dueDay
-                            )
-                        },
-                        enabled = !uiState.isLoading
-                    ) {
-                        Text("Salvar")
-                    }
+                Button(
+                    onClick = {
+                        viewModel.saveCustomer(
+                            customerId = customerId,
+                            name = name,
+                            phone = phone.onlyPhoneDigits().take(11),
+                            email = email,
+                            sexo = sexo,
+                            isMonthly = isMonthly,
+                            monthlyFee = monthlyFee,
+                            dueDay = dueDay
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    enabled = !uiState.isLoading,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(Icons.Default.Save, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (customerId == null) "Salvar" else "Atualizar",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
 
