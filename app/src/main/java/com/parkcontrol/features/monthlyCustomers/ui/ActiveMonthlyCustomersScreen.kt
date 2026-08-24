@@ -83,6 +83,7 @@ private val SexoOptions = listOf(
 @Composable
 fun ActiveMonthlyCustomersScreen(
     onNavigate: (String) -> Unit,
+    onNavigateForward: (String) -> Unit = onNavigate,
     currentRoute: String = AppRoutes.MonthlyCustomers.route,
     saveSuccessMessage: String? = null,
     onSaveSuccessMessageShown: () -> Unit = {}
@@ -221,7 +222,7 @@ fun ActiveMonthlyCustomersScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconButton(onClick = {
-                                    onNavigate(AppRoutes.CustomerVehicles.createRoute(customer.id))
+                                    onNavigateForward(AppRoutes.CustomerVehicles.createRoute(customer.id))
                                 }) {
                                     Icon(
                                         imageVector = Icons.Rounded.DirectionsCar,
@@ -229,7 +230,7 @@ fun ActiveMonthlyCustomersScreen(
                                     )
                                 }
                                 IconButton(onClick = {
-                                    onNavigate(AppRoutes.MonthlyCustomerForm.createRoute(customer.id))
+                                    onNavigateForward(AppRoutes.MonthlyCustomerForm.createRoute(customer.id))
                                 }) {
                                     Icon(
                                         imageVector = Icons.Rounded.Edit,
@@ -246,7 +247,7 @@ fun ActiveMonthlyCustomersScreen(
             }
 
             FloatingActionButton(
-                onClick = { onNavigate(AppRoutes.MonthlyCustomerForm.createRoute()) },
+                onClick = { onNavigateForward(AppRoutes.MonthlyCustomerForm.createRoute()) },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)

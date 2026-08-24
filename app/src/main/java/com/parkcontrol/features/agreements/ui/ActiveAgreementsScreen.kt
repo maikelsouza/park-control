@@ -45,6 +45,7 @@ import java.util.Locale
 @Composable
 fun ActiveAgreementsScreen(
     onNavigate: (String) -> Unit,
+    onNavigateForward: (String) -> Unit = onNavigate,
     currentRoute: String = AppRoutes.AgreementsActive.route
 ) {
     AppDrawerScaffold(
@@ -155,7 +156,7 @@ fun ActiveAgreementsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconButton(onClick = {
-                                    onNavigate(AppRoutes.AgreementForm.createRoute(agreement.id))
+                                    onNavigateForward(AppRoutes.AgreementForm.createRoute(agreement.id))
                                 }) {
                                     Icon(
                                         imageVector = Icons.Rounded.Edit,
@@ -172,7 +173,7 @@ fun ActiveAgreementsScreen(
             }
 
             FloatingActionButton(
-                onClick = { onNavigate(AppRoutes.AgreementForm.createRoute()) },
+                onClick = { onNavigateForward(AppRoutes.AgreementForm.createRoute()) },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)

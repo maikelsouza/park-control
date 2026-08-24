@@ -46,6 +46,18 @@ fun AppNavigation(
         }
     }
 
+    // Navegacao "para frente" (ex: abrir um formulario de "Novo"/"Editar" a
+    // partir de uma tela de listagem, ou abrir a listagem de veiculos de um
+    // cliente). Ao contrario de navigateFromDrawer, esta funcao apenas
+    // empilha o destino normalmente, sem popUpTo/saveState/restoreState.
+    // Usar navigateFromDrawer aqui era a causa do bug em que, apos visitar
+    // uma tela via drawer a partir de um formulario, reabrir o mesmo
+    // formulario pelo menu restaurava indevidamente a pilha antiga
+    // (mostrando a tela de listagem de veiculos no lugar do formulario).
+    val navigateForward: (String) -> Unit = { route ->
+        navController.navigate(route)
+    }
+
     NavHost(
         navController = navController,
         startDestination = AppRoutes.Home.route
@@ -76,6 +88,7 @@ fun AppNavigation(
 
             ActiveMonthlyCustomersScreen(
                 onNavigate = navigateFromDrawer,
+                onNavigateForward = navigateForward,
                 currentRoute = AppRoutes.MonthlyCustomers.route,
                 saveSuccessMessage = saveResult,
                 onSaveSuccessMessageShown = {
@@ -91,6 +104,7 @@ fun AppNavigation(
 
             ActiveMonthlyCustomersScreen(
                 onNavigate = navigateFromDrawer,
+                onNavigateForward = navigateForward,
                 currentRoute = AppRoutes.MonthlyCustomersActive.route,
                 saveSuccessMessage = saveResult,
                 onSaveSuccessMessageShown = {
@@ -121,7 +135,7 @@ fun AppNavigation(
                 ?.takeIf { it > 0 }
 
             MonthlyCustomerFormScreen(
-                onNavigate = { navController.navigate(it) },
+                onNavigate = navigateFromDrawer,
                 customerId = customerId,
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = { message ->
@@ -198,6 +212,7 @@ fun AppNavigation(
         composable(AppRoutes.Agreements.route) {
             ActiveAgreementsScreen(
                 onNavigate = navigateFromDrawer,
+                onNavigateForward = navigateForward,
                 currentRoute = AppRoutes.Agreements.route
             )
         }
@@ -205,6 +220,7 @@ fun AppNavigation(
         composable(AppRoutes.AgreementsActive.route) {
             ActiveAgreementsScreen(
                 onNavigate = navigateFromDrawer,
+                onNavigateForward = navigateForward,
                 currentRoute = AppRoutes.AgreementsActive.route
             )
         }
@@ -231,9 +247,7 @@ fun AppNavigation(
                 ?.takeIf { it > 0 }
 
             AgreementsScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                },
+                onNavigate = navigateFromDrawer,
                 agreementId = agreementId,
                 onFinish = { navController.popBackStack() },
                 onBack = { navController.popBackStack() }
