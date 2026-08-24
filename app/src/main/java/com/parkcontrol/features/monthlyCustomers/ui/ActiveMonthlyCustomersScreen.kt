@@ -425,7 +425,7 @@ fun MonthlyCustomerFormScreen(
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             capitalization = KeyboardCapitalization.None,
-                            autoCorrect = false
+                            autoCorrectEnabled = false
                         )
                     )
 
