@@ -3,6 +3,7 @@ package com.parkcontrol.features.monthlyCustomers.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.parkcontrol.core.utils.EmailRegex
 import com.parkcontrol.features.monthlyCustomers.domain.model.MonthlyCustomer
 import com.parkcontrol.features.monthlyCustomers.domain.usecase.GetMonthlyCustomerByIdUseCase
 import com.parkcontrol.features.monthlyCustomers.domain.usecase.GetActiveMonthlyCustomersUseCase
@@ -26,7 +27,6 @@ class ActiveMonthlyCustomersViewModel(
 ) : AndroidViewModel(application) {
 
     private val allowedDueDays = setOf(1, 5, 10, 15, 20, 25)
-    private val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
     private val _uiState = MutableStateFlow(MonthlyCustomersUiState())
     val uiState: StateFlow<MonthlyCustomersUiState> = _uiState
@@ -89,7 +89,7 @@ class ActiveMonthlyCustomersViewModel(
             return
         }
 
-        if (normalizedEmail.isNotBlank() && !emailRegex.matches(normalizedEmail)) {
+        if (normalizedEmail.isNotBlank() && !EmailRegex.matches(normalizedEmail)) {
             _uiState.value = _uiState.value.copy(errorMessage = "Email invalido")
             return
         }

@@ -3,6 +3,7 @@ package com.parkcontrol.features.agreements.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.parkcontrol.core.utils.EmailRegex
 import com.parkcontrol.features.agreements.domain.model.Agreement
 import com.parkcontrol.features.agreements.domain.usecase.GetAgreementByIdUseCase
 import com.parkcontrol.features.agreements.domain.usecase.SaveAgreementUseCase
@@ -20,6 +21,7 @@ class AgreementFormViewModel(
 
     private val _uiState = MutableStateFlow(AgreementFormUiState())
     val uiState: StateFlow<AgreementFormUiState> = _uiState
+
 
     fun loadAgreementForEdit(agreementId: Int?) {
         if (agreementId == null) {
@@ -70,6 +72,11 @@ class AgreementFormViewModel(
             normalizedState.isBlank() || normalizedZipCode.isBlank() || discountCents == null
         ) {
             _uiState.value = _uiState.value.copy(errorMessage = "Preencha os campos obrigatórios")
+            return
+        }
+
+        if (normalizedEmail.isNotBlank() && !EmailRegex.matches(normalizedEmail)) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Email inválido")
             return
         }
 

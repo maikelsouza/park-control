@@ -55,6 +55,8 @@ import com.parkcontrol.core.ui.masks.ZipCodeMaskTransformation
 import com.parkcontrol.core.ui.masks.onlyMoneyDigits
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.masks.onlyZipCodeDigits
+import com.parkcontrol.core.utils.looksLikeEmail
+import com.parkcontrol.core.utils.sanitizeEmailInput
 
 private val BrazilianStates = listOf(
     "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO",
@@ -168,6 +170,7 @@ private fun AgreementsFormContent(
     var discountValue by rememberSaveable { mutableStateOf("") }
     var showValidation by rememberSaveable { mutableStateOf(false) }
     var didPrefill by rememberSaveable(agreementId) { mutableStateOf(false) }
+    var emailFieldTouched by rememberSaveable { mutableStateOf(false) }
 
     val nameError = requiredFieldError(name, showValidation)
     val contactNameError = requiredFieldError(contactName, showValidation)
@@ -179,6 +182,9 @@ private fun AgreementsFormContent(
     val zipCodeError = requiredFieldError(zipCode, showValidation)
     val discountError = requiredFieldError(discountValue, showValidation)
 
+    val isEmailValid = contactEmail.isBlank() || contactEmail.looksLikeEmail()
+    val showEmailError = (emailFieldTouched || showValidation) && contactEmail.isNotBlank() && !contactEmail.looksLikeEmail()
+
     val isFormValid = name.isNotBlank() &&
         contactName.isNotBlank() &&
         contactPhone.isNotBlank() &&
@@ -187,7 +193,8 @@ private fun AgreementsFormContent(
         city.isNotBlank() &&
         state.isNotBlank() &&
         zipCode.isNotBlank() &&
-        discountValue.isNotBlank()
+        discountValue.isNotBlank() &&
+        isEmailValid
 
     LaunchedEffect(agreementId) {
         onLoadForEdit()
@@ -304,11 +311,23 @@ private fun AgreementsFormContent(
 
         OutlinedTextField(
             value = contactEmail,
-            onValueChange = { contactEmail = it },
+            onValueChange = { typed ->
+                emailFieldTouched = true
+                contactEmail = typed.sanitizeEmailInput()
+            },
             label = { Text("E-mail") },
+            placeholder = { Text("ex: nome@dominio.com") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            isError = showEmailError,
+            supportingText = {
+                if (showEmailError) Text("Informe um e-mail válido", color = colorScheme.error)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false
+            )
         )
 
         OutlinedTextField(
@@ -443,6 +462,7 @@ private fun AgreementsFormContent(
         Button(
             onClick = {
                 showValidation = true
+                emailFieldTouched = true
                 if (!isFormValid || isSaving) return@Button
 
                 onSave(
@@ -486,6 +506,7 @@ private fun AgreementsFormContent(
 private fun requiredFieldError(value: String, showValidation: Boolean): String? {
     return if (showValidation && value.isBlank()) "Campo obrigatório" else null
 }
+
 
 
 

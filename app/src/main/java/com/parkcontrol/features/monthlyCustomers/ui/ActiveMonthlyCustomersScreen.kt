@@ -68,6 +68,8 @@ import com.parkcontrol.core.ui.masks.onlyMoneyDigits
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.masks.toBrazilianPhoneMask
 import com.parkcontrol.core.ui.theme.ParkControlTheme
+import com.parkcontrol.core.utils.looksLikeEmail
+import com.parkcontrol.core.utils.sanitizeEmailInput
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -635,23 +637,6 @@ private fun Int?.toMoneyDigitsInput(): String {
 }
 
 
-private fun String.sanitizeEmailInput(): String {
-    val allowedChars = buildString(length) {
-        for (char in this@sanitizeEmailInput.lowercase(Locale.ROOT)) {
-            if (char.isLetterOrDigit() || char in setOf('@', '.', '_', '-', '+')) append(char)
-        }
-    }
-    val parts = allowedChars.split('@', limit = 2)
-    return when {
-        parts.size == 1 -> parts[0].trim()
-        else -> "${parts[0].trim()}@${parts[1].trim()}"
-    }.take(254)
-}
-
-private fun String.looksLikeEmail(): Boolean {
-    if (isBlank()) return false
-    return Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$").matches(trim())
-}
 
 private fun String.toSexoLabel(): String {
     return when (trim().lowercase(Locale.ROOT)) {
