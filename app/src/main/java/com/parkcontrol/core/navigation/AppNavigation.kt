@@ -3,6 +3,7 @@ package com.parkcontrol.core.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,6 +32,20 @@ fun AppNavigation(
 
     val navController = rememberNavController()
 
+    // Navegacao usada pelos itens do drawer: evita empilhar multiplas
+    // instancias da mesma tela (o que podia deixar estados antigos de
+    // selecao/expansao do submenu "presos" ao voltar para uma tela ja
+    // visitada) e restaura o estado salvo da tela de destino.
+    val navigateFromDrawer: (String) -> Unit = { route ->
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = AppRoutes.Home.route
@@ -38,25 +53,19 @@ fun AppNavigation(
 
         composable(AppRoutes.Home.route) {
             HomeScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                }
+                onNavigate = navigateFromDrawer
             )
         }
 
         composable(AppRoutes.Parking.route){
             ParkingScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                }
+                onNavigate = navigateFromDrawer
             )
         }
 
         composable(AppRoutes.ParkedVehicles.route) {
             ParkedVehiclesScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                }
+                onNavigate = navigateFromDrawer
             )
         }
 
@@ -66,9 +75,7 @@ fun AppNavigation(
                 .collectAsState()
 
             ActiveMonthlyCustomersScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                },
+                onNavigate = navigateFromDrawer,
                 currentRoute = AppRoutes.MonthlyCustomers.route,
                 saveSuccessMessage = saveResult,
                 onSaveSuccessMessageShown = {
@@ -83,9 +90,7 @@ fun AppNavigation(
                 .collectAsState()
 
             ActiveMonthlyCustomersScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                },
+                onNavigate = navigateFromDrawer,
                 currentRoute = AppRoutes.MonthlyCustomersActive.route,
                 saveSuccessMessage = saveResult,
                 onSaveSuccessMessageShown = {
@@ -96,9 +101,7 @@ fun AppNavigation(
 
         composable(AppRoutes.MonthlyCustomersInactive.route) {
             InactiveMonthlyCustomersScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                },
+                onNavigate = navigateFromDrawer,
                 currentRoute = AppRoutes.MonthlyCustomersInactive.route
             )
         }
@@ -187,36 +190,28 @@ fun AppNavigation(
 
         composable(AppRoutes.Settings.route) {
             SettingsScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                }
+                onNavigate = navigateFromDrawer
             )
 
         }
 
         composable(AppRoutes.Agreements.route) {
             ActiveAgreementsScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                },
+                onNavigate = navigateFromDrawer,
                 currentRoute = AppRoutes.Agreements.route
             )
         }
 
         composable(AppRoutes.AgreementsActive.route) {
             ActiveAgreementsScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                },
+                onNavigate = navigateFromDrawer,
                 currentRoute = AppRoutes.AgreementsActive.route
             )
         }
 
         composable(AppRoutes.AgreementsInactive.route) {
             InactiveAgreementsScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                },
+                onNavigate = navigateFromDrawer,
                 currentRoute = AppRoutes.AgreementsInactive.route
             )
         }
@@ -247,9 +242,7 @@ fun AppNavigation(
 
         composable(AppRoutes.About.route) {
             AboutScreen(
-                onNavigate = {
-                    navController.navigate(it)
-                }
+                onNavigate = navigateFromDrawer
             )
         }
     }

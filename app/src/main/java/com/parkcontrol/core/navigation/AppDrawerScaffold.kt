@@ -49,9 +49,26 @@ fun AppDrawerScaffold(
     )
 
     val scope = rememberCoroutineScope()
-    
-    val isMonthlyCustomersExpanded = remember { mutableStateOf(false) }
-    val isAgreementsExpanded = remember { mutableStateOf(false) }
+
+    // O estado de expansao do submenu e derivado da rota atual, assim ele
+    // sempre reflete corretamente onde o usuario esta, mesmo que a mesma
+    // instancia de composicao seja reaproveitada (ex: restoreState = true
+    // ao navegar pelo drawer), evitando que um "Ativos"/"Inativos" antigo
+    // fique com o efeito de selecionado ao clicar no item pai novamente.
+    val isMonthlyCustomersExpanded = remember(currentRoute) {
+        mutableStateOf(
+            currentRoute == AppRoutes.MonthlyCustomers.route ||
+                currentRoute == AppRoutes.MonthlyCustomersActive.route ||
+                currentRoute == AppRoutes.MonthlyCustomersInactive.route
+        )
+    }
+    val isAgreementsExpanded = remember(currentRoute) {
+        mutableStateOf(
+            currentRoute == AppRoutes.Agreements.route ||
+                currentRoute == AppRoutes.AgreementsActive.route ||
+                currentRoute == AppRoutes.AgreementsInactive.route
+        )
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -126,9 +143,7 @@ fun AppDrawerScaffold(
                     label = {
                         Text("Clientes")
                     },
-                    selected = currentRoute == AppRoutes.MonthlyCustomers.route || 
-                               currentRoute == AppRoutes.MonthlyCustomersActive.route ||
-                               currentRoute == AppRoutes.MonthlyCustomersInactive.route,
+                    selected = currentRoute == AppRoutes.MonthlyCustomers.route,
                     onClick = {
                         isMonthlyCustomersExpanded.value = !isMonthlyCustomersExpanded.value
                     },
