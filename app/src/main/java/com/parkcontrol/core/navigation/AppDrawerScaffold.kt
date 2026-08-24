@@ -187,9 +187,7 @@ fun AppDrawerScaffold(
                     label = {
                         Text("Convênios")
                     },
-                    selected = currentRoute == AppRoutes.Agreements.route ||
-                        currentRoute == AppRoutes.AgreementsActive.route ||
-                        currentRoute == AppRoutes.AgreementsInactive.route,
+                    selected = currentRoute == AppRoutes.Agreements.route,
                     onClick = {
                         isAgreementsExpanded.value = !isAgreementsExpanded.value
                     },
