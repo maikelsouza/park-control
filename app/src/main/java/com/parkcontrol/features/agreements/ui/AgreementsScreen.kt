@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,8 +18,6 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -235,7 +232,7 @@ private fun AgreementsFormContent(
             .background(colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
@@ -264,206 +261,184 @@ private fun AgreementsFormContent(
             color = colorScheme.onSurfaceVariant
         )
 
-        SectionCard(title = "Identificação") {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nome do convênio *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                isError = nameError != null,
-                supportingText = {
-                    if (nameError != null) Text(nameError, color = colorScheme.error)
-                }
-            )
-        }
-
-        SectionCard(title = "Contato") {
-            OutlinedTextField(
-                value = contactName,
-                onValueChange = { contactName = it },
-                label = { Text("Nome do responsável *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                isError = contactNameError != null,
-                supportingText = {
-                    if (contactNameError != null) Text(contactNameError, color = colorScheme.error)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = contactPhone,
-                onValueChange = { typed -> contactPhone = typed.onlyPhoneDigits().take(11) },
-                label = { Text("Telefone *") },
-                placeholder = { Text("(00) 00000-0000") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                visualTransformation = PhoneMaskTransformation,
-                isError = phoneError != null,
-                supportingText = {
-                    if (phoneError != null) Text(phoneError, color = colorScheme.error)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = contactEmail,
-                onValueChange = { contactEmail = it },
-                label = { Text("E-mail") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-            )
-        }
-
-        SectionCard(title = "Endereço") {
-            OutlinedTextField(
-                value = street,
-                onValueChange = { street = it },
-                label = { Text("Rua *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                isError = streetError != null,
-                supportingText = {
-                    if (streetError != null) Text(streetError, color = colorScheme.error)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedTextField(
-                    value = number,
-                    onValueChange = { number = it },
-                    label = { Text("Número") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                OutlinedTextField(
-                    value = complement,
-                    onValueChange = { complement = it },
-                    label = { Text("Complemento") },
-                    placeholder = { Text("Apto, sala, bloco...") },
-                    modifier = Modifier.weight(2f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
-                )
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nome do convênio *") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            isError = nameError != null,
+            supportingText = {
+                if (nameError != null) Text(nameError, color = colorScheme.error)
             }
+        )
 
-            Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = contactName,
+            onValueChange = { contactName = it },
+            label = { Text("Nome do responsável *") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            isError = contactNameError != null,
+            supportingText = {
+                if (contactNameError != null) Text(contactNameError, color = colorScheme.error)
+            }
+        )
 
+        OutlinedTextField(
+            value = contactPhone,
+            onValueChange = { typed -> contactPhone = typed.onlyPhoneDigits().take(11) },
+            label = { Text("Telefone *") },
+            placeholder = { Text("(00) 00000-0000") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            visualTransformation = PhoneMaskTransformation,
+            isError = phoneError != null,
+            supportingText = {
+                if (phoneError != null) Text(phoneError, color = colorScheme.error)
+            }
+        )
+
+        OutlinedTextField(
+            value = contactEmail,
+            onValueChange = { contactEmail = it },
+            label = { Text("E-mail") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+        )
+
+        OutlinedTextField(
+            value = street,
+            onValueChange = { street = it },
+            label = { Text("Rua *") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            isError = streetError != null,
+            supportingText = {
+                if (streetError != null) Text(streetError, color = colorScheme.error)
+            }
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             OutlinedTextField(
-                value = neighborhood,
-                onValueChange = { neighborhood = it },
-                label = { Text("Bairro *") },
-                modifier = Modifier.fillMaxWidth(),
+                value = number,
+                onValueChange = { number = it },
+                label = { Text("Número") },
+                modifier = Modifier.weight(1f),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                isError = neighborhoodError != null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            OutlinedTextField(
+                value = complement,
+                onValueChange = { complement = it },
+                label = { Text("Complemento") },
+                placeholder = { Text("Apto, sala, bloco...") },
+                modifier = Modifier.weight(2f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+            )
+        }
+
+        OutlinedTextField(
+            value = neighborhood,
+            onValueChange = { neighborhood = it },
+            label = { Text("Bairro *") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            isError = neighborhoodError != null,
+            supportingText = {
+                if (neighborhoodError != null) Text(neighborhoodError, color = colorScheme.error)
+            }
+        )
+
+        OutlinedTextField(
+            value = city,
+            onValueChange = { city = it },
+            label = { Text("Cidade *") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            isError = cityError != null,
+            supportingText = {
+                if (cityError != null) Text(cityError, color = colorScheme.error)
+            }
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = stateExpanded,
+            onExpandedChange = { stateExpanded = !stateExpanded },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = state,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Estado *") },
+                placeholder = { Text("UF") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = stateExpanded) },
+                modifier = Modifier
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                    .fillMaxWidth(),
+                singleLine = true,
+                isError = stateError != null,
                 supportingText = {
-                    if (neighborhoodError != null) Text(neighborhoodError, color = colorScheme.error)
+                    if (stateError != null) Text(stateError, color = colorScheme.error)
                 }
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = city,
-                onValueChange = { city = it },
-                label = { Text("Cidade *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                isError = cityError != null,
-                supportingText = {
-                    if (cityError != null) Text(cityError, color = colorScheme.error)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ExposedDropdownMenuBox(
+            ExposedDropdownMenu(
                 expanded = stateExpanded,
-                onExpandedChange = { stateExpanded = !stateExpanded },
-                modifier = Modifier.fillMaxWidth()
+                onDismissRequest = { stateExpanded = false }
             ) {
-                OutlinedTextField(
-                    value = state,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Estado *") },
-                    placeholder = { Text("UF") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = stateExpanded) },
-                    modifier = Modifier
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
-                        .fillMaxWidth(),
-                    singleLine = true,
-                    isError = stateError != null,
-                    supportingText = {
-                        if (stateError != null) Text(stateError, color = colorScheme.error)
-                    }
-                )
-                ExposedDropdownMenu(
-                    expanded = stateExpanded,
-                    onDismissRequest = { stateExpanded = false }
-                ) {
-                    BrazilianStates.forEach { uf ->
-                        DropdownMenuItem(
-                            text = { Text(uf) },
-                            onClick = {
-                                state = uf
-                                stateExpanded = false
-                            }
-                        )
-                    }
+                BrazilianStates.forEach { uf ->
+                    DropdownMenuItem(
+                        text = { Text(uf) },
+                        onClick = {
+                            state = uf
+                            stateExpanded = false
+                        }
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = zipCode,
-                onValueChange = { typed -> zipCode = typed.onlyZipCodeDigits().take(8) },
-                label = { Text("CEP *") },
-                placeholder = { Text("00000-000") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                visualTransformation = ZipCodeMaskTransformation,
-                isError = zipCodeError != null,
-                supportingText = {
-                    if (zipCodeError != null) Text(zipCodeError, color = colorScheme.error)
-                }
-            )
         }
 
-        SectionCard(title = "Desconto") {
-            OutlinedTextField(
-                value = discountValue,
-                onValueChange = { typed -> discountValue = typed.onlyMoneyDigits().take(11) },
-                label = { Text("Valor de desconto (R$) *") },
-                placeholder = { Text("Ex: 5,00") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                visualTransformation = CurrencyMaskTransformation,
-                isError = discountError != null,
-                supportingText = {
-                    if (discountError != null) Text(discountError, color = colorScheme.error)
-                }
-            )
-        }
+        OutlinedTextField(
+            value = zipCode,
+            onValueChange = { typed -> zipCode = typed.onlyZipCodeDigits().take(8) },
+            label = { Text("CEP *") },
+            placeholder = { Text("00000-000") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            visualTransformation = ZipCodeMaskTransformation,
+            isError = zipCodeError != null,
+            supportingText = {
+                if (zipCodeError != null) Text(zipCodeError, color = colorScheme.error)
+            }
+        )
+
+        OutlinedTextField(
+            value = discountValue,
+            onValueChange = { typed -> discountValue = typed.onlyMoneyDigits().take(11) },
+            label = { Text("Valor de desconto (R$) *") },
+            placeholder = { Text("Ex: 5,00") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            visualTransformation = CurrencyMaskTransformation,
+            isError = discountError != null,
+            supportingText = {
+                if (discountError != null) Text(discountError, color = colorScheme.error)
+            }
+        )
 
         Button(
             onClick = {
@@ -508,32 +483,12 @@ private fun AgreementsFormContent(
     }
 }
 
-@Composable
-private fun SectionCard(
-    title: String,
-    content: @Composable () -> Unit
-) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = title,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            content()
-        }
-    }
-}
-
 private fun requiredFieldError(value: String, showValidation: Boolean): String? {
     return if (showValidation && value.isBlank()) "Campo obrigatório" else null
 }
+
+
+
 
 
 
