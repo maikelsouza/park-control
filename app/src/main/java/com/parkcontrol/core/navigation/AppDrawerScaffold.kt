@@ -182,24 +182,6 @@ fun AppDrawerScaffold(
                     )
                 }
 
-                NavigationDrawerItem(
-                    label = {
-                        Text("Configurações")
-                    },
-                    selected = currentRoute == AppRoutes.Settings.route,
-                    onClick = {
-                        scope.launch {
-                            drawerState.close()
-                        }
-                        onNavigate(AppRoutes.Settings.route)
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Rounded.Settings,
-                            contentDescription = "Configurações"
-                        )
-                    }
-                )
 
                 NavigationDrawerItem(
                     label = {
@@ -260,6 +242,25 @@ fun AppDrawerScaffold(
                         modifier = Modifier.padding(start = 32.dp)
                     )
                 }
+
+                NavigationDrawerItem(
+                    label = {
+                        Text("Configurações")
+                    },
+                    selected = currentRoute == AppRoutes.Settings.route,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        onNavigate(AppRoutes.Settings.route)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Settings,
+                            contentDescription = "Configurações"
+                        )
+                    }
+                )
 
                 NavigationDrawerItem(
                     label = {
