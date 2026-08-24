@@ -350,11 +350,10 @@ private fun VehiclePlateSection(
                 }
 
                 Text(
-                    text = viewModel.licensePlate.value
-                        .ifEmpty { "ABC1D23" },
+                    text = viewModel.licensePlate.value,
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    textAlign = TextAlign.Center,
                     color = colorScheme.onSurface,
                     modifier = Modifier
                         .weight(1f)
@@ -458,7 +457,7 @@ private fun SearchOpenRecordsSection(
         ) {
             Text(
                 text = "Nenhum veiculo estacionado encontrado",
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 color = colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -534,7 +533,7 @@ private fun LastRecordSection(
         ) {
             Text(
                 text = "Nenhum registro selecionado",
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 color = colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
