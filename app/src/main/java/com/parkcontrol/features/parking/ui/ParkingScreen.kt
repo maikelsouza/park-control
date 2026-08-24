@@ -53,7 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.ui.masks.CurrencyMaskTransformation
 import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
-import com.parkcontrol.core.ui.masks.formatPlateInput
+import com.parkcontrol.core.ui.masks.formatPlateInputValue
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.masks.plateInputPlaceholder
 import com.parkcontrol.core.ui.theme.ParkControlTheme
@@ -62,6 +62,8 @@ import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.model.formatToBrazilian
 import com.parkcontrol.features.parking.domain.usecase.CalculateParkingPriceUseCase
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 
 private val SuccessGreen = Color(0xFF28A745)
 
@@ -145,6 +147,15 @@ private fun VehiclePlateSection(
     val selectedAgreement = viewModel.selectedAgreement.value
     var agreementExpanded by remember { mutableStateOf(false) }
     var plateType by remember { mutableStateOf(PlateType.MERCOSUL) }
+    var plateFieldValue by remember {
+        mutableStateOf(TextFieldValue(viewModel.licensePlate.value))
+    }
+    // Keeps the field in sync when the plate is changed externally (e.g. reset after
+    // saving or when switching plate type), placing the cursor at the end in that case.
+    val currentPlate = viewModel.licensePlate.value
+    if (currentPlate != plateFieldValue.text) {
+        plateFieldValue = TextFieldValue(currentPlate, TextRange(currentPlate.length))
+    }
 
     Text(
         text = "Placa do Veículo",
@@ -170,8 +181,12 @@ private fun VehiclePlateSection(
     Spacer(modifier = Modifier.height(8.dp))
 
     OutlinedTextField(
-        value = viewModel.licensePlate.value,
-        onValueChange = { typed -> viewModel.updateLicensePlate(formatPlateInput(typed, plateType)) },
+        value = plateFieldValue,
+        onValueChange = { newValue ->
+            val formattedValue = formatPlateInputValue(newValue, plateType)
+            plateFieldValue = formattedValue
+            viewModel.updateLicensePlate(formattedValue.text)
+        },
         label = { Text("Digite a placa *") },
         placeholder = { Text(plateInputPlaceholder(plateType)) },
         singleLine = true,

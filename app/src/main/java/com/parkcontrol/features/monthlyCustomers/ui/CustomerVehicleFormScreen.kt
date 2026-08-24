@@ -34,16 +34,19 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.parkcontrol.core.ui.masks.formatPlateInput
+import com.parkcontrol.core.ui.masks.formatPlateInputValue
 import com.parkcontrol.core.ui.masks.plateInputPlaceholder
 import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.monthlyCustomers.domain.model.VehicleCategory
@@ -61,6 +64,12 @@ private val CommonBrands = listOf(
 private val CommonColors = listOf(
     "Amarelo", "Azul", "Bege", "Branco", "Cinza", "Laranja",
     "Marrom", "Prata", "Preto", "Roxo", "Verde", "Vermelho", "Outro"
+)
+
+/** Saves only the raw text of the plate field, restoring the cursor at the end. */
+private val PlateTextFieldValueSaver = Saver<TextFieldValue, String>(
+    save = { it.text },
+    restore = { TextFieldValue(it, TextRange(it.length)) }
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,7 +93,9 @@ fun CustomerVehicleFormScreen(
     var customBrand by rememberSaveable(vehicleId) { mutableStateOf("") }
     var model by rememberSaveable(vehicleId) { mutableStateOf("") }
     var color by rememberSaveable(vehicleId) { mutableStateOf("") }
-    var plate by rememberSaveable(vehicleId) { mutableStateOf("") }
+    var plate by rememberSaveable(vehicleId, stateSaver = PlateTextFieldValueSaver) {
+        mutableStateOf(TextFieldValue(""))
+    }
     var plateType by rememberSaveable(vehicleId) { mutableStateOf(PlateType.MERCOSUL) }
     var category by rememberSaveable(vehicleId) { mutableStateOf<VehicleCategory?>(null) }
     var parkingSpot by rememberSaveable(vehicleId) { mutableStateOf("") }
@@ -110,7 +121,7 @@ fun CustomerVehicleFormScreen(
             customBrand = if (v.brand !in CommonBrands) v.brand else ""
             model = v.model
             color = v.color
-            plate = v.plate
+            plate = TextFieldValue(v.plate, TextRange(v.plate.length))
             plateType = v.plateType
             category = v.category
             parkingSpot = v.parkingSpot.orEmpty()
@@ -134,7 +145,7 @@ fun CustomerVehicleFormScreen(
                 customBrand = ""
                 model = ""
                 color = ""
-                plate = ""
+                plate = TextFieldValue("")
                 plateType = PlateType.MERCOSUL
                 category = null
                 parkingSpot = ""
@@ -312,7 +323,7 @@ fun CustomerVehicleFormScreen(
                             selected = plateType == type,
                             onClick = {
                                 plateType = type
-                                plate = ""   // reset plate when type changes
+                                plate = TextFieldValue("")   // reset plate when type changes
                             },
                             label = { Text(type.displayName) }
                         )
@@ -322,7 +333,7 @@ fun CustomerVehicleFormScreen(
                 // ── Placa ──────────────────────────────────────────────────
                 OutlinedTextField(
                     value = plate,
-                    onValueChange = { typed -> plate = formatPlateInput(typed, plateType) },
+                    onValueChange = { newValue -> plate = formatPlateInputValue(newValue, plateType) },
                     label = { Text("Placa *") },
                     placeholder = { Text(plateInputPlaceholder(plateType)) },
                     modifier = Modifier.fillMaxWidth(),
@@ -368,7 +379,7 @@ fun CustomerVehicleFormScreen(
                                 brand = finalBrand,
                                 model = model,
                                 color = color,
-                                plate = plate,
+                                plate = plate.text,
                                 plateType = plateType,
                                 category = category ?: VehicleCategory.OUTRO,
                                 parkingSpot = parkingSpot.takeIf { it.isNotBlank() },
@@ -389,7 +400,7 @@ fun CustomerVehicleFormScreen(
                             brand = finalBrand,
                             model = model,
                             color = color,
-                            plate = plate,
+                            plate = plate.text,
                             plateType = plateType,
                             category = category ?: VehicleCategory.OUTRO,
                             parkingSpot = parkingSpot.takeIf { it.isNotBlank() },

@@ -36,12 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
-import com.parkcontrol.core.ui.masks.formatPlateInput
+import com.parkcontrol.core.ui.masks.formatPlateInputValue
 import com.parkcontrol.core.ui.masks.plateInputPlaceholder
 import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
@@ -90,6 +92,12 @@ private fun ParkedVehiclesContent(
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
     var plateTypeFilter by remember { mutableStateOf(PlateType.MERCOSUL) }
+    var plateFilterFieldValue by remember { mutableStateOf(TextFieldValue(plateFilter)) }
+    // Keeps the field in sync when the plate filter is changed externally (e.g. reset
+    // when switching plate type), placing the cursor at the end in that case.
+    if (plateFilter != plateFilterFieldValue.text) {
+        plateFilterFieldValue = TextFieldValue(plateFilter, TextRange(plateFilter.length))
+    }
 
     Column(
         modifier = modifier
@@ -127,8 +135,12 @@ private fun ParkedVehiclesContent(
         }
 
         OutlinedTextField(
-            value = plateFilter,
-            onValueChange = { typed -> viewModel.updatePlateFilter(formatPlateInput(typed, plateTypeFilter)) },
+            value = plateFilterFieldValue,
+            onValueChange = { newValue ->
+                val formattedValue = formatPlateInputValue(newValue, plateTypeFilter)
+                plateFilterFieldValue = formattedValue
+                viewModel.updatePlateFilter(formattedValue.text)
+            },
             label = { Text("Placa") },
             placeholder = { Text(plateInputPlaceholder(plateTypeFilter)) },
             singleLine = true,
