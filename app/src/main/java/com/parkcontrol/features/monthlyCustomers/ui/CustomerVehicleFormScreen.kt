@@ -1,7 +1,6 @@
 package com.parkcontrol.features.monthlyCustomers.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -331,7 +330,7 @@ fun CustomerVehicleFormScreen(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
                         capitalization = KeyboardCapitalization.Characters,
-                        autoCorrect = false
+                        autoCorrectEnabled = false
                     ),
                     supportingText = { Text(plateType.displayName) }
                 )
