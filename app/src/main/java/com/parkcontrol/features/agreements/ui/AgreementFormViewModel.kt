@@ -59,8 +59,8 @@ class AgreementFormViewModel(
         val normalizedPhone = phone.filter(Char::isDigit).take(11)
         val normalizedEmail = email.trim().lowercase()
         val normalizedStreet = street.trim()
-        val normalizedNumber = number.trim()
-        val normalizedComplement = complement.trim()
+        val normalizedNumber = number.trim().take(MAX_NUMBER_LENGTH)
+        val normalizedComplement = complement.trim().take(MAX_COMPLEMENT_LENGTH)
         val normalizedCity = city.trim()
         val normalizedNeighborhood = neighborhood.trim()
         val normalizedState = state.trim().uppercase().take(2)
@@ -72,6 +72,36 @@ class AgreementFormViewModel(
             normalizedState.isBlank() || normalizedZipCode.isBlank() || discountCents == null
         ) {
             _uiState.value = _uiState.value.copy(errorMessage = "Preencha os campos obrigatórios")
+            return
+        }
+
+        if (normalizedName.length > MAX_NAME_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Nome do convênio deve ter no máximo $MAX_NAME_LENGTH caracteres")
+            return
+        }
+
+        if (normalizedContactName.length > MAX_CONTACT_NAME_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Nome do responsável deve ter no máximo $MAX_CONTACT_NAME_LENGTH caracteres")
+            return
+        }
+
+        if (normalizedEmail.length > MAX_EMAIL_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Email deve ter no máximo $MAX_EMAIL_LENGTH caracteres")
+            return
+        }
+
+        if (normalizedStreet.length > MAX_STREET_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Rua deve ter no máximo $MAX_STREET_LENGTH caracteres")
+            return
+        }
+
+        if (normalizedCity.length > MAX_CITY_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Cidade deve ter no máximo $MAX_CITY_LENGTH caracteres")
+            return
+        }
+
+        if (normalizedNeighborhood.length > MAX_NEIGHBORHOOD_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Bairro deve ter no máximo $MAX_NEIGHBORHOOD_LENGTH caracteres")
             return
         }
 
@@ -134,6 +164,17 @@ class AgreementFormViewModel(
 
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
+    }
+
+    companion object {
+        const val MAX_NAME_LENGTH = 100
+        const val MAX_CONTACT_NAME_LENGTH = 100
+        const val MAX_EMAIL_LENGTH = 100
+        const val MAX_STREET_LENGTH = 150
+        const val MAX_NUMBER_LENGTH = 10
+        const val MAX_COMPLEMENT_LENGTH = 100
+        const val MAX_NEIGHBORHOOD_LENGTH = 100
+        const val MAX_CITY_LENGTH = 100
     }
 }
 

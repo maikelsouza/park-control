@@ -270,27 +270,35 @@ private fun AgreementsFormContent(
 
         OutlinedTextField(
             value = name,
-            onValueChange = { name = it },
+            onValueChange = { name = it.take(AgreementFormViewModel.MAX_NAME_LENGTH) },
             label = { Text("Nome do convênio *") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             isError = nameError != null,
             supportingText = {
-                if (nameError != null) Text(nameError, color = colorScheme.error)
+                if (nameError != null) {
+                    Text(nameError, color = colorScheme.error)
+                } else if (name.length >= AgreementFormViewModel.MAX_NAME_LENGTH) {
+                    Text("Limite de ${AgreementFormViewModel.MAX_NAME_LENGTH} caracteres atingido")
+                }
             }
         )
 
         OutlinedTextField(
             value = contactName,
-            onValueChange = { contactName = it },
+            onValueChange = { contactName = it.take(AgreementFormViewModel.MAX_CONTACT_NAME_LENGTH) },
             label = { Text("Nome do responsável *") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             isError = contactNameError != null,
             supportingText = {
-                if (contactNameError != null) Text(contactNameError, color = colorScheme.error)
+                if (contactNameError != null) {
+                    Text(contactNameError, color = colorScheme.error)
+                } else if (contactName.length >= AgreementFormViewModel.MAX_CONTACT_NAME_LENGTH) {
+                    Text("Limite de ${AgreementFormViewModel.MAX_CONTACT_NAME_LENGTH} caracteres atingido")
+                }
             }
         )
 
@@ -313,7 +321,7 @@ private fun AgreementsFormContent(
             value = contactEmail,
             onValueChange = { typed ->
                 emailFieldTouched = true
-                contactEmail = typed.sanitizeEmailInput()
+                contactEmail = typed.sanitizeEmailInput().take(AgreementFormViewModel.MAX_EMAIL_LENGTH)
             },
             label = { Text("E-mail") },
             placeholder = { Text("ex: nome@dominio.com") },
@@ -321,7 +329,11 @@ private fun AgreementsFormContent(
             singleLine = true,
             isError = showEmailError,
             supportingText = {
-                if (showEmailError) Text("Informe um e-mail válido", color = colorScheme.error)
+                if (showEmailError) {
+                    Text("Informe um e-mail válido", color = colorScheme.error)
+                } else if (contactEmail.length >= AgreementFormViewModel.MAX_EMAIL_LENGTH) {
+                    Text("Limite de ${AgreementFormViewModel.MAX_EMAIL_LENGTH} caracteres atingido")
+                }
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -332,14 +344,18 @@ private fun AgreementsFormContent(
 
         OutlinedTextField(
             value = street,
-            onValueChange = { street = it },
+            onValueChange = { street = it.take(AgreementFormViewModel.MAX_STREET_LENGTH) },
             label = { Text("Rua *") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             isError = streetError != null,
             supportingText = {
-                if (streetError != null) Text(streetError, color = colorScheme.error)
+                if (streetError != null) {
+                    Text(streetError, color = colorScheme.error)
+                } else if (street.length >= AgreementFormViewModel.MAX_STREET_LENGTH) {
+                    Text("Limite de ${AgreementFormViewModel.MAX_STREET_LENGTH} caracteres atingido")
+                }
             }
         )
 
@@ -349,46 +365,64 @@ private fun AgreementsFormContent(
         ) {
             OutlinedTextField(
                 value = number,
-                onValueChange = { number = it },
+                onValueChange = { number = it.take(AgreementFormViewModel.MAX_NUMBER_LENGTH) },
                 label = { Text("Número") },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = {
+                    if (number.length >= AgreementFormViewModel.MAX_NUMBER_LENGTH) {
+                        Text("Limite de ${AgreementFormViewModel.MAX_NUMBER_LENGTH} caracteres atingido")
+                    }
+                }
             )
             OutlinedTextField(
                 value = complement,
-                onValueChange = { complement = it },
+                onValueChange = { complement = it.take(AgreementFormViewModel.MAX_COMPLEMENT_LENGTH) },
                 label = { Text("Complemento") },
                 placeholder = { Text("Apto, sala, bloco...") },
                 modifier = Modifier.weight(2f),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                supportingText = {
+                    if (complement.length >= AgreementFormViewModel.MAX_COMPLEMENT_LENGTH) {
+                        Text("Limite de ${AgreementFormViewModel.MAX_COMPLEMENT_LENGTH} caracteres atingido")
+                    }
+                }
             )
         }
 
         OutlinedTextField(
             value = neighborhood,
-            onValueChange = { neighborhood = it },
+            onValueChange = { neighborhood = it.take(AgreementFormViewModel.MAX_NEIGHBORHOOD_LENGTH) },
             label = { Text("Bairro *") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             isError = neighborhoodError != null,
             supportingText = {
-                if (neighborhoodError != null) Text(neighborhoodError, color = colorScheme.error)
+                if (neighborhoodError != null) {
+                    Text(neighborhoodError, color = colorScheme.error)
+                } else if (neighborhood.length >= AgreementFormViewModel.MAX_NEIGHBORHOOD_LENGTH) {
+                    Text("Limite de ${AgreementFormViewModel.MAX_NEIGHBORHOOD_LENGTH} caracteres atingido")
+                }
             }
         )
 
         OutlinedTextField(
             value = city,
-            onValueChange = { city = it },
+            onValueChange = { city = it.take(AgreementFormViewModel.MAX_CITY_LENGTH) },
             label = { Text("Cidade *") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             isError = cityError != null,
             supportingText = {
-                if (cityError != null) Text(cityError, color = colorScheme.error)
+                if (cityError != null) {
+                    Text(cityError, color = colorScheme.error)
+                } else if (city.length >= AgreementFormViewModel.MAX_CITY_LENGTH) {
+                    Text("Limite de ${AgreementFormViewModel.MAX_CITY_LENGTH} caracteres atingido")
+                }
             }
         )
 
