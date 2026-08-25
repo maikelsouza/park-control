@@ -80,12 +80,22 @@ class ActiveMonthlyCustomersViewModel(
             return
         }
 
+        if (normalizedName.length > MAX_NAME_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Nome deve ter no máximo $MAX_NAME_LENGTH caracteres")
+            return
+        }
+
         val normalizedPhone = phone.filter(Char::isDigit).take(11)
         val normalizedEmail = email.trim().lowercase(Locale.ROOT)
         val normalizedSexo = sexo.trim().lowercase(Locale.ROOT).ifBlank { null }
 
         if (normalizedSexo != null && normalizedSexo !in setOf("masculino", "feminino")) {
             _uiState.value = _uiState.value.copy(errorMessage = "Sexo invalido")
+            return
+        }
+
+        if (normalizedEmail.length > MAX_EMAIL_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Email deve ter no máximo $MAX_EMAIL_LENGTH caracteres")
             return
         }
 
@@ -208,6 +218,11 @@ class ActiveMonthlyCustomersViewModel(
         val value = normalized.toBigDecimalOrNull() ?: return null
         if (value < BigDecimal.ZERO) return null
         return value.multiply(BigDecimal(100)).setScale(0, RoundingMode.HALF_UP).toInt()
+    }
+
+    companion object {
+        const val MAX_NAME_LENGTH = 100
+        const val MAX_EMAIL_LENGTH = 100
     }
 }
 

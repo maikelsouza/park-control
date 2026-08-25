@@ -399,10 +399,15 @@ fun MonthlyCustomerFormScreen(
 
                     OutlinedTextField(
                         value = name,
-                        onValueChange = { name = it },
+                        onValueChange = { name = it.take(ActiveMonthlyCustomersViewModel.MAX_NAME_LENGTH) },
                         label = { Text("Nome *") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        supportingText = {
+                            if (name.length >= ActiveMonthlyCustomersViewModel.MAX_NAME_LENGTH) {
+                                Text("Limite de ${ActiveMonthlyCustomersViewModel.MAX_NAME_LENGTH} caracteres atingido")
+                            }
+                        }
                     )
 
                     OutlinedTextField(
@@ -419,7 +424,7 @@ fun MonthlyCustomerFormScreen(
                         value = email,
                         onValueChange = { typed ->
                             emailFieldTouched = true
-                            email = typed.sanitizeEmailInput()
+                            email = typed.sanitizeEmailInput().take(ActiveMonthlyCustomersViewModel.MAX_EMAIL_LENGTH)
                         },
                         label = { Text("Email") },
                         placeholder = { Text("ex: nome@dominio.com") },
@@ -429,6 +434,8 @@ fun MonthlyCustomerFormScreen(
                         supportingText = {
                             if (emailFieldTouched && email.isNotBlank() && !email.looksLikeEmail()) {
                                 Text("Informe um e-mail válido")
+                            } else if (email.length >= ActiveMonthlyCustomersViewModel.MAX_EMAIL_LENGTH) {
+                                Text("Limite de ${ActiveMonthlyCustomersViewModel.MAX_EMAIL_LENGTH} caracteres atingido")
                             }
                         },
                         keyboardOptions = KeyboardOptions(
