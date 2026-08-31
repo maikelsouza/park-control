@@ -83,6 +83,13 @@ class ParkingViewModel(
     private val _pricePerHour = mutableStateOf("7.00")
     val pricePerHour: State<String> = _pricePerHour
 
+    private val _toastMessage = mutableStateOf<String?>(null)
+    val toastMessage: State<String?> = _toastMessage
+
+    fun onToastMessageShown() {
+        _toastMessage.value = null
+    }
+
     init {
         // load persisted parking config and keep UI state in sync
         viewModelScope.launch {
@@ -192,6 +199,8 @@ class ParkingViewModel(
             _selectedAgreementValue.value = ""
             _manualDiscount.value = ""
             refreshOpenRecordSuggestions()
+
+            _toastMessage.value = "Entrada realizada com sucesso"
         }
     }
 
@@ -223,6 +232,7 @@ class ParkingViewModel(
 
         viewModelScope.launch {
             updateParkingRecordUseCase(updatedRecord)
+            _toastMessage.value = "Saída realizada com sucesso"
         }
     }
 

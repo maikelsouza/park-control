@@ -1,6 +1,7 @@
 package com.parkcontrol.features.parking.ui
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -105,6 +106,15 @@ fun ParkingEntryScreen(
 
     val selectedRecord = viewModel.selectedRecord.value
     val suggestions = viewModel.openRecordSuggestions.value
+    val toastMessage = viewModel.toastMessage.value
+    val context = LocalContext.current
+
+    LaunchedEffect(toastMessage) {
+        toastMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.onToastMessageShown()
+        }
+    }
 
     LazyColumn(
         modifier = modifier
