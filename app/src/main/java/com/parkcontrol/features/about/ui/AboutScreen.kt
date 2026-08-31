@@ -50,7 +50,7 @@ fun AboutScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Gerencie seu estacionamento de forma rápida e simples, sem a necessidade de pagar por um sistema para as atividades básicas, permitindo controlar entrada, saída, cadastro de veículos e clientes imediatamente.",
+                    text = "Gerencie seu estacionamento de forma rápida e simples, sem precisar pagar por um sistema para as atividades básicas. Controle entrada, saída, cadastro de veículos e clientes imediatamente, sem complicação.",
                     color = colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )
