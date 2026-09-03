@@ -17,7 +17,7 @@ import androidx.room.PrimaryKey
     ],
     indices = [
         Index(value = ["customerId"]),
-        Index(value = ["plate"], unique = true)
+        Index(value = ["plate"])
     ]
 )
 data class CustomerVehicleEntity(
