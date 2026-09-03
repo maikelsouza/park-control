@@ -6,10 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.parkcontrol.features.monthlyCustomers.data.local.entity.CustomerVehicleEntity
-import com.parkcontrol.features.monthlyCustomers.data.local.entity.MonthlyCustomerEntity
-import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
-import com.parkcontrol.features.monthlyCustomers.domain.model.VehicleCategory
 import com.parkcontrol.features.parking.data.local.entity.ParkingRecordEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -40,18 +36,11 @@ interface ParkingRecordDao {
     )
     suspend fun getCustomerIdByPlate(plate: String): Int?
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertCustomer(customer: MonthlyCustomerEntity): Long
-
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertVehicle(vehicle: CustomerVehicleEntity)
-
     @Transaction
-    suspend fun insertParkingRecordEnsuringCustomer(record: ParkingRecordEntity) {
+    suspend fun insertParkingRecordWithCustomerLookup(record: ParkingRecordEntity) {
         val normalizedPlate = record.licensePlate.trim().uppercase()
         val normalizedPhone = record.phone.trim()
         val customerId = getCustomerIdByPlate(normalizedPlate)
-            ?: createFallbackCustomer(plate = normalizedPlate, phone = normalizedPhone)
 
         insertParkingRecord(
             record.copy(
@@ -73,38 +62,4 @@ interface ParkingRecordDao {
         """
     )
     suspend fun hasActiveParking(licensePlate: String): Boolean
-
-    private suspend fun createFallbackCustomer(plate: String, phone: String): Int {
-        val now = System.currentTimeMillis()
-        val customerId = insertCustomer(
-            MonthlyCustomerEntity(
-                name = "não informado",
-                phone = phone,
-                email = "",
-                isMonthly = false,
-                monthlyFeeCents = null,
-                dueDay = null,
-                isActive = true,
-                createdAt = now,
-                updatedAt = now
-            )
-        ).toInt()
-
-        insertVehicle(
-            CustomerVehicleEntity(
-                customerId = customerId,
-                brand = "",
-                model = "",
-                color = "",
-                plate = plate,
-                plateType = PlateType.OUTRA.name,
-                category = VehicleCategory.OUTRO.name,
-                parkingSpot = null,
-                isPrimary = true,
-                createdAt = now
-            )
-        )
-
-        return customerId
-    }
 }

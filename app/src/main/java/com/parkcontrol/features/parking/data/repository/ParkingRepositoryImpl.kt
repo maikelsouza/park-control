@@ -20,7 +20,7 @@ class ParkingRepositoryImpl(
     }
 
     override suspend fun addParkingRecord(record: ParkingRecord) {
-        dao.insertParkingRecordEnsuringCustomer(record.toEntity())
+        dao.insertParkingRecordWithCustomerLookup(record.toEntity())
     }
 
     override suspend fun updateParkingRecord(record: ParkingRecord) {
