@@ -1,7 +1,14 @@
 package com.parkcontrol.features.parking.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +21,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,6 +34,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -40,6 +54,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.rememberScrollState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
@@ -93,11 +108,19 @@ private fun ParkedVehiclesContent(
     var showEndDatePicker by remember { mutableStateOf(false) }
     var plateTypeFilter by remember { mutableStateOf(PlateType.MERCOSUL) }
     var plateFilterFieldValue by remember { mutableStateOf(TextFieldValue(plateFilter)) }
+    var filtersExpanded by remember { mutableStateOf(false) }
     // Keeps the field in sync when the plate filter is changed externally (e.g. reset
     // when switching plate type), placing the cursor at the end in that case.
     if (plateFilter != plateFilterFieldValue.text) {
         plateFilterFieldValue = TextFieldValue(plateFilter, TextRange(plateFilter.length))
     }
+
+    val activeFilterCount = listOf(
+        plateFilter.isNotBlank(),
+        startDateFilter.isNotBlank(),
+        endDateFilter.isNotBlank(),
+        statusFilter != null
+    ).count { it }
 
     Column(
         modifier = modifier
@@ -117,102 +140,198 @@ private fun ParkedVehiclesContent(
             color = colorScheme.onSurfaceVariant
         )
 
-        Text(
-            text = "Tipo de Placa",
-            style = MaterialTheme.typography.labelMedium
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PlateType.entries.forEach { type ->
-                FilterChip(
-                    selected = plateTypeFilter == type,
-                    onClick = {
-                        plateTypeFilter = type
-                        viewModel.updatePlateFilter("")
-                    },
-                    label = { Text(type.displayName) }
-                )
-            }
-        }
-
-        OutlinedTextField(
-            value = plateFilterFieldValue,
-            onValueChange = { newValue ->
-                val formattedValue = formatPlateInputValue(newValue, plateTypeFilter)
-                plateFilterFieldValue = formattedValue
-                viewModel.updatePlateFilter(formattedValue.text)
-            },
-            label = { Text("Placa") },
-            placeholder = { Text(plateInputPlaceholder(plateTypeFilter)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Painel de filtros retratil: fica recolhido por padrao para nao ocupar
+        // muito espaco da tela, exibindo um resumo dos filtros ativos.
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize(),
+            colors = CardDefaults.cardColors(
+                containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
         ) {
-            DateFilterField(
-                value = startDateFilter,
-                label = "Data inicial",
-                onClick = { showStartDatePicker = true },
-                modifier = Modifier.weight(1f)
-            )
-
-            DateFilterField(
-                value = endDateFilter,
-                label = "Data final",
-                onClick = { showEndDatePicker = true },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FilterChip(
-                selected = statusFilter == null,
-                onClick = { viewModel.updateStatusFilter(null) },
-                label = { Text("Todos") }
-            )
-            FilterChip(
-                selected = statusFilter == ParkingStatus.ESTACIONADO,
-                onClick = { viewModel.updateStatusFilter(ParkingStatus.ESTACIONADO) },
-                label = { Text(ParkingStatus.ESTACIONADO.label) }
-            )
-            FilterChip(
-                selected = statusFilter == ParkingStatus.FINALIZADO,
-                onClick = { viewModel.updateStatusFilter(ParkingStatus.FINALIZADO) },
-                label = { Text(ParkingStatus.FINALIZADO.label) }
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(
-                onClick = viewModel::applyFilters,
-                modifier = Modifier.weight(1f)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Filtrar")
-            }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { filtersExpanded = !filtersExpanded }
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.FilterList,
+                            contentDescription = null,
+                            tint = colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Filtros",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        if (activeFilterCount > 0) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Badge { Text("$activeFilterCount") }
+                        }
+                    }
+                    Icon(
+                        imageVector = if (filtersExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = if (filtersExpanded) "Recolher filtros" else "Expandir filtros"
+                    )
+                }
 
-            Button(
-                onClick = viewModel::clearFilters,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Limpar")
-            }
-        }
+                if (!filtersExpanded && activeFilterCount > 0) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (plateFilter.isNotBlank()) {
+                            AssistChip(
+                                onClick = { filtersExpanded = true },
+                                label = { Text("Placa: $plateFilter") }
+                            )
+                        }
+                        if (startDateFilter.isNotBlank()) {
+                            AssistChip(
+                                onClick = { filtersExpanded = true },
+                                label = { Text("De: $startDateFilter") }
+                            )
+                        }
+                        if (endDateFilter.isNotBlank()) {
+                            AssistChip(
+                                onClick = { filtersExpanded = true },
+                                label = { Text("Ate: $endDateFilter") }
+                            )
+                        }
+                        statusFilter?.let { status ->
+                            AssistChip(
+                                onClick = { filtersExpanded = true },
+                                label = { Text("Status: ${status.label}") }
+                            )
+                        }
+                    }
+                }
 
-        filterError?.let { message ->
-            Text(
-                text = message,
-                color = colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
+                AnimatedVisibility(
+                    visible = filtersExpanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "Tipo de Placa",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            PlateType.entries.forEach { type ->
+                                FilterChip(
+                                    selected = plateTypeFilter == type,
+                                    onClick = {
+                                        plateTypeFilter = type
+                                        viewModel.updatePlateFilter("")
+                                    },
+                                    label = { Text(type.displayName) }
+                                )
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = plateFilterFieldValue,
+                            onValueChange = { newValue ->
+                                val formattedValue = formatPlateInputValue(newValue, plateTypeFilter)
+                                plateFilterFieldValue = formattedValue
+                                viewModel.updatePlateFilter(formattedValue.text)
+                            },
+                            label = { Text("Placa") },
+                            placeholder = { Text(plateInputPlaceholder(plateTypeFilter)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            DateFilterField(
+                                value = startDateFilter,
+                                label = "Data inicial",
+                                onClick = { showStartDatePicker = true },
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            DateFilterField(
+                                value = endDateFilter,
+                                label = "Data final",
+                                onClick = { showEndDatePicker = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = statusFilter == null,
+                                onClick = { viewModel.updateStatusFilter(null) },
+                                label = { Text("Todos") }
+                            )
+                            FilterChip(
+                                selected = statusFilter == ParkingStatus.ESTACIONADO,
+                                onClick = { viewModel.updateStatusFilter(ParkingStatus.ESTACIONADO) },
+                                label = { Text(ParkingStatus.ESTACIONADO.label) }
+                            )
+                            FilterChip(
+                                selected = statusFilter == ParkingStatus.FINALIZADO,
+                                onClick = { viewModel.updateStatusFilter(ParkingStatus.FINALIZADO) },
+                                label = { Text(ParkingStatus.FINALIZADO.label) }
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    viewModel.applyFilters()
+                                    filtersExpanded = false
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Filtrar")
+                            }
+
+                            Button(
+                                onClick = viewModel::clearFilters,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Limpar")
+                            }
+                        }
+
+                        filterError?.let { message ->
+                            Text(
+                                text = message,
+                                color = colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         Text(
