@@ -43,6 +43,10 @@ sealed class AppRoutes(
 
     data object Settings : AppRoutes("settings")
 
+    data object ParkingLotRegistration : AppRoutes("parking_lot_registration")
+
+
+
     data object Agreements : AppRoutes("agreements")
 
     data object AgreementsActive : AppRoutes("agreements/active")

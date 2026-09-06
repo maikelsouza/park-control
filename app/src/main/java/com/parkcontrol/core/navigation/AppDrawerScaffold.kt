@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Store
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -271,6 +272,25 @@ fun AppDrawerScaffold(
                         Icon(
                             imageVector = Icons.Rounded.Settings,
                             contentDescription = "Configurações"
+                        )
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = {
+                        Text("Estacionamento")
+                    },
+                    selected = currentRoute == AppRoutes.ParkingLotRegistration.route,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        onNavigate(AppRoutes.ParkingLotRegistration.route)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Store,
+                            contentDescription = "Estacionamento"
                         )
                     }
                 )

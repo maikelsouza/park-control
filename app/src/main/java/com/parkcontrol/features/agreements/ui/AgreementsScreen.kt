@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
+import com.parkcontrol.core.ui.common.BrazilianStates
+import com.parkcontrol.core.ui.common.requiredFieldError
 import com.parkcontrol.core.ui.masks.CurrencyMaskTransformation
 import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
 import com.parkcontrol.core.ui.masks.ZipCodeMaskTransformation
@@ -58,11 +60,6 @@ import com.parkcontrol.core.ui.masks.onlyZipCodeDigits
 import com.parkcontrol.core.utils.looksLikeEmail
 import com.parkcontrol.core.utils.sanitizeEmailInput
 
-private val BrazilianStates = listOf(
-    "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO",
-    "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR",
-    "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"
-)
 
 @Composable
 fun AgreementsScreen(
@@ -537,9 +534,6 @@ private fun AgreementsFormContent(
     }
 }
 
-private fun requiredFieldError(value: String, showValidation: Boolean): String? {
-    return if (showValidation && value.isBlank()) "Campo obrigatório" else null
-}
 
 
 

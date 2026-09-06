@@ -3,9 +3,13 @@ package com.parkcontrol.core.di
 import android.content.Context
 import com.parkcontrol.core.data.database.AppDatabase
 import com.parkcontrol.core.data.repository.ParkingConfigRepositoryImpl
+import com.parkcontrol.core.data.repository.ParkingLotInfoRepositoryImpl
 import com.parkcontrol.core.domain.repository.ParkingConfigRepository
+import com.parkcontrol.core.domain.repository.ParkingLotInfoRepository
 import com.parkcontrol.core.domain.usecase.GetParkingConfigUseCase
+import com.parkcontrol.core.domain.usecase.GetParkingLotInfoUseCase
 import com.parkcontrol.core.domain.usecase.SaveParkingConfigUseCase
+import com.parkcontrol.core.domain.usecase.SaveParkingLotInfoUseCase
 import com.parkcontrol.features.agreements.data.repository.AgreementRepositoryImpl
 import com.parkcontrol.features.agreements.domain.repository.AgreementRepository
 import com.parkcontrol.features.agreements.domain.usecase.GetActiveAgreementsUseCase
@@ -28,6 +32,7 @@ import com.parkcontrol.features.parking.domain.usecase.UpdateParkingRecordUseCas
 object CoreDependencies {
 
     private var parkingConfigRepository: ParkingConfigRepository? = null
+    private var parkingLotInfoRepository: ParkingLotInfoRepository? = null
     private var monthlyCustomerRepository: MonthlyCustomerRepository? = null
     private var customerVehicleRepository: CustomerVehicleRepository? = null
     private var parkingRepository: ParkingRepository? = null
@@ -52,6 +57,16 @@ object CoreDependencies {
             parkingConfigRepository = ParkingConfigRepositoryImpl(context)
         }
         return parkingConfigRepository!!
+    }
+
+    /**
+     * Get or create the parking lot registration repository instance.
+     */
+    fun getParkingLotInfoRepository(context: Context): ParkingLotInfoRepository {
+        if (parkingLotInfoRepository == null) {
+            parkingLotInfoRepository = ParkingLotInfoRepositoryImpl(context)
+        }
+        return parkingLotInfoRepository!!
     }
 
     fun getMonthlyCustomerRepository(context: Context): MonthlyCustomerRepository {
@@ -106,6 +121,20 @@ object CoreDependencies {
      */
     fun createSaveParkingConfigUseCase(context: Context): SaveParkingConfigUseCase {
         return SaveParkingConfigUseCase(getParkingConfigRepository(context))
+    }
+
+    /**
+     * Create a new instance of GetParkingLotInfoUseCase.
+     */
+    fun createGetParkingLotInfoUseCase(context: Context): GetParkingLotInfoUseCase {
+        return GetParkingLotInfoUseCase(getParkingLotInfoRepository(context))
+    }
+
+    /**
+     * Create a new instance of SaveParkingLotInfoUseCase.
+     */
+    fun createSaveParkingLotInfoUseCase(context: Context): SaveParkingLotInfoUseCase {
+        return SaveParkingLotInfoUseCase(getParkingLotInfoRepository(context))
     }
 
     fun createObserveParkingRecordsUseCase(context: Context): ObserveParkingRecordsUseCase {

@@ -21,9 +21,11 @@ import com.parkcontrol.features.agreements.ui.AgreementsScreen
 import com.parkcontrol.features.agreements.ui.InactiveAgreementsScreen
 import com.parkcontrol.features.parking.ui.ParkedVehiclesScreen
 import com.parkcontrol.features.parking.ui.ParkingScreen
+import com.parkcontrol.features.parkingLot.ui.ParkingLotScreen
 import com.parkcontrol.features.settings.ui.SettingsScreen
 
 private const val MONTHLY_CUSTOMER_SAVE_RESULT_KEY = "monthly_customer_save_result"
+private const val HOME_SAVE_RESULT_KEY = "home_save_result"
 
 @Composable
 fun AppNavigation(
@@ -64,8 +66,16 @@ fun AppNavigation(
     ) {
 
         composable(AppRoutes.Home.route) {
+            val saveResult by it.savedStateHandle
+                .getStateFlow(HOME_SAVE_RESULT_KEY, null as String?)
+                .collectAsState()
+
             HomeScreen(
-                onNavigate = navigateFromDrawer
+                onNavigate = navigateFromDrawer,
+                saveSuccessMessage = saveResult,
+                onSaveSuccessMessageShown = {
+                    it.savedStateHandle[HOME_SAVE_RESULT_KEY] = null
+                }
             )
         }
 
@@ -207,6 +217,17 @@ fun AppNavigation(
                 onNavigate = navigateFromDrawer
             )
 
+        }
+
+        composable(AppRoutes.ParkingLotRegistration.route) {
+            ParkingLotScreen(
+                onNavigate = navigateFromDrawer,
+                onSaved = { message ->
+                    navController.getBackStackEntry(AppRoutes.Home.route)
+                        .savedStateHandle[HOME_SAVE_RESULT_KEY] = message
+                    navigateFromDrawer(AppRoutes.Home.route)
+                }
+            )
         }
 
         composable(AppRoutes.Agreements.route) {
