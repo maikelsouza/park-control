@@ -35,6 +35,7 @@ data class ParkingRecordEntity(
     val amountPaid: Double? = null,
     val discountAmount: Double? = null,
     val isManualDiscount: Boolean = false,
+    val ticketNumber: Long = 0,
     val createdAt: Long,
     val updatedAt: Long
 )

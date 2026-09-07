@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ticket de Estacionamento</title>
+<style>
+  :root {
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 24px 16px 40px;
+    background: linear-gradient(180deg, #eef2f7 0%, #dbe4f0 100%);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Cartão do ticket: é isso que vira a imagem salva */
+  #ticket-card {
+    width: 320px;
+    max-width: 90vw;
+    border-radius: 20px;
+    padding: 24px;
+    background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+    color: #ffffff;
+    box-shadow: 0 12px 28px rgba(13, 71, 161, 0.35);
+    position: relative;
+    overflow: hidden;
+  }
+  #ticket-card::after {
+    content: "";
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .ticket-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ticket-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.35);
+    font-size: 15px;
+  }
+  .ticket-row:last-of-type { border-bottom: none; }
+  .ticket-label {
+    opacity: 0.85;
+  }
+  .ticket-value {
+    font-weight: 700;
+    text-align: right;
+  }
+  .ticket-number {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+  .ticket-footer {
+    margin-top: 4px;
+    text-align: center;
+    font-size: 11px;
+    opacity: 0.75;
+  }
+
+  .actions {
+    width: 320px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  button, .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  #save-btn {
+    background: #1976d2;
+    color: #fff;
+  }
+  #whatsapp-btn {
+    background: #25d366;
+    color: #073b1e;
+  }
+  #status-msg {
+    font-size: 13px;
+    text-align: center;
+    color: #33415c;
+    min-height: 18px;
+  }
+</style>
+</head>
+<body>
+
+  <div id="ticket-card">
+    <p class="ticket-title">🚗 Ticket de Estacionamento</p>
+    <div class="ticket-row">
+      <span class="ticket-label">Placa</span>
+      <span class="ticket-value" id="field-placa">-</span>
+    </div>
+    <div class="ticket-row">
+      <span class="ticket-label">Entrada</span>
+      <span class="ticket-value" id="field-entrada">-</span>
+    </div>
+    <div class="ticket-number" id="field-ticket">#00000</div>
+    <div class="ticket-footer">Guarde este ticket até a saída do veículo</div>
+  </div>
+
+  <div class="actions">
+    <button id="save-btn">💾 Salvar imagem no celular</button>
+    <a id="whatsapp-btn" class="btn" href="#">📲 Enviar por WhatsApp</a>
+    <p id="status-msg"></p>
+  </div>
+
+  <!-- html2canvas: converte o cartão HTML em uma imagem PNG, 100% no navegador -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    function getParam(name, fallback) {
+      const params = new URLSearchParams(window.location.search);
+      const value = params.get(name);
+      return value && value.trim().length > 0 ? value : fallback;
+    }
+
+    const placa = getParam('placa', '-');
+    const entrada = getParam('entrada', '-');
+    const ticketNumero = getParam('ticket', '#00000');
+
+    document.getElementById('field-placa').textContent = placa;
+    document.getElementById('field-entrada').textContent = entrada;
+    document.getElementById('field-ticket').textContent = ticketNumero;
+    document.title = 'Ticket ' + ticketNumero;
+
+    // Monta o link do WhatsApp com o mesmo texto do ticket, para quem
+    // preferir enviar a mensagem em vez de (ou além de) salvar a imagem.
+    const whatsAppText =
+      '🚗 Ticket de Estacionamento\n\n' +
+      'Placa: ' + placa + '\n' +
+      'Entrada: ' + entrada + '\n' +
+      'Ticket: ' + ticketNumero;
+    document.getElementById('whatsapp-btn').href =
+      'https://wa.me/?text=' + encodeURIComponent(whatsAppText);
+
+    const statusEl = document.getElementById('status-msg');
+    const saveBtn = document.getElementById('save-btn');
+
+    async function renderCardToBlob() {
+      const card = document.getElementById('ticket-card');
+      const canvas = await html2canvas(card, { backgroundColor: null, scale: 2 });
+      return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    saveBtn.addEventListener('click', async () => {
+      statusEl.textContent = 'Gerando imagem...';
+      saveBtn.disabled = true;
+      try {
+        const blob = await renderCardToBlob();
+        const fileName = 'ticket-' + ticketNumero.replace('#', '') + '.png';
+        const file = new File([blob], fileName, { type: 'image/png' });
+
+        // Em navegadores compatíveis (a maioria no Android), isso abre o menu
+        // nativo de compartilhamento/"Salvar em Fotos".
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Ticket de Estacionamento',
+            text: 'Ticket ' + ticketNumero
+          });
+          statusEl.textContent = 'Pronto! Escolha "Salvar" ou a galeria no menu.';
+        } else {
+          // Fallback: dispara o download direto (funciona bem no Chrome Android;
+          // no iOS Safari a imagem abre em uma nova aba para "Salvar imagem").
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+          statusEl.textContent = 'Imagem baixada! Verifique a galeria/downloads.';
+        }
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Não foi possível salvar automaticamente. Tire um print da tela.';
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
+

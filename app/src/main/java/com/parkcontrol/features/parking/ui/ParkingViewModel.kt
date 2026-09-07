@@ -86,8 +86,21 @@ class ParkingViewModel(
     private val _toastMessage = mutableStateOf<String?>(null)
     val toastMessage: State<String?> = _toastMessage
 
+    // Registro cujo ticket digital (QR-code) está sendo exibido no dialog.
+    // Null quando o dialog está fechado.
+    private val _qrCodeRecord = mutableStateOf<ParkingRecord?>(null)
+    val qrCodeRecord: State<ParkingRecord?> = _qrCodeRecord
+
     fun onToastMessageShown() {
         _toastMessage.value = null
+    }
+
+    fun onGenerateQrCodeClick() {
+        _qrCodeRecord.value = _selectedRecord.value
+    }
+
+    fun onDismissQrCodeDialog() {
+        _qrCodeRecord.value = null
     }
 
     init {
@@ -103,6 +116,7 @@ class ParkingViewModel(
             observeParkingRecordsUseCase().collect { records ->
                 _parkingRecords.value = records
                 syncSelectedRecord(records)
+                syncQrCodeRecord(records)
                 refreshOpenRecordSuggestions()
             }
         }
@@ -271,6 +285,11 @@ class ParkingViewModel(
     private fun syncSelectedRecord(records: List<ParkingRecord>) {
         val selectedId = _selectedRecord.value?.id ?: return
         _selectedRecord.value = records.firstOrNull { it.id == selectedId }
+    }
+
+    private fun syncQrCodeRecord(records: List<ParkingRecord>) {
+        val qrRecordId = _qrCodeRecord.value?.id ?: return
+        _qrCodeRecord.value = records.firstOrNull { it.id == qrRecordId }
     }
 
     private fun syncSelectedAgreement(agreements: List<Agreement>) {

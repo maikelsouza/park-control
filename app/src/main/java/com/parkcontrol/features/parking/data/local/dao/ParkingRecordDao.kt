@@ -36,17 +36,22 @@ interface ParkingRecordDao {
     )
     suspend fun getCustomerIdByPlate(plate: String): Int?
 
+    @Query("SELECT COALESCE(MAX(ticketNumber), 0) + 1 FROM parking_records")
+    suspend fun getNextTicketNumber(): Long
+
     @Transaction
     suspend fun insertParkingRecordWithCustomerLookup(record: ParkingRecordEntity) {
         val normalizedPlate = record.licensePlate.trim().uppercase()
         val normalizedPhone = record.phone.trim()
         val customerId = getCustomerIdByPlate(normalizedPlate)
+        val ticketNumber = if (record.ticketNumber > 0) record.ticketNumber else getNextTicketNumber()
 
         insertParkingRecord(
             record.copy(
                 customerId = customerId,
                 licensePlate = normalizedPlate,
-                phone = normalizedPhone
+                phone = normalizedPhone,
+                ticketNumber = ticketNumber
             )
         )
     }

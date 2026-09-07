@@ -107,6 +107,7 @@ fun ParkingEntryScreen(
     val selectedRecord = viewModel.selectedRecord.value
     val suggestions = viewModel.openRecordSuggestions.value
     val toastMessage = viewModel.toastMessage.value
+    val qrCodeRecord = viewModel.qrCodeRecord.value
     val context = LocalContext.current
 
     LaunchedEffect(toastMessage) {
@@ -114,6 +115,13 @@ fun ParkingEntryScreen(
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.onToastMessageShown()
         }
+    }
+
+    qrCodeRecord?.let { record ->
+        TicketQrCodeDialog(
+            record = record,
+            onDismiss = viewModel::onDismissQrCodeDialog
+        )
     }
 
     LazyColumn(
@@ -449,6 +457,26 @@ private fun ActionButtonsSection(
                 color = Color.White
             )
         }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Button(
+        onClick = viewModel::onGenerateQrCodeClick,
+        enabled = selectedRecord?.status == ParkingStatus.ESTACIONADO,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colorScheme.tertiary
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            "🎫 GERAR QR-CODE DO TICKET",
+            fontWeight = FontWeight.Bold,
+            color = colorScheme.onTertiary
+        )
     }
 }
 
