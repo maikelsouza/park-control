@@ -22,26 +22,30 @@ import com.parkcontrol.core.utils.QrCodeGenerator
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.formatAsTicketNumber
 import com.parkcontrol.features.parking.domain.model.formatToTicketDisplay
-import com.parkcontrol.features.parking.domain.model.toTicketPageUrl
+import com.parkcontrol.features.parking.domain.model.toWhatsAppTicketLink
 
 /**
  * Dialog exibido ao clicar em "Gerar QR-Code" na tela de entrada, representando
  * o ticket digital de estacionamento: um QR-code que, ao ser escaneado (com a
- * câmera/leitor de QR-code do celular do cliente), abre uma página web com o
- * ticket (placa, entrada e número do ticket) em forma de cartão visual, com um
- * botão para o cliente salvar essa imagem diretamente no próprio celular.
+ * câmera/leitor de QR-code do celular do cliente), abre o WhatsApp com o texto
+ * do ticket (placa, entrada e número do ticket) já pré-preenchido, endereçado
+ * ao próprio telefone do cliente informado na entrada (ou sem destinatário
+ * definido, caso o telefone não tenha sido informado). Não depende de nenhuma
+ * página/servidor externo — funciona totalmente offline até o momento de
+ * enviar a mensagem.
  */
 @Composable
 fun TicketQrCodeDialog(
     record: ParkingRecord,
     onDismiss: () -> Unit
 ) {
-    val ticketPageUrl = remember(record.id, record.ticketNumber) {
-        record.toTicketPageUrl()
+    val whatsAppLink = remember(record.id, record.ticketNumber, record.phone) {
+        record.toWhatsAppTicketLink()
     }
-    val qrBitmap = remember(ticketPageUrl) {
-        QrCodeGenerator.generate(ticketPageUrl)
+    val qrBitmap = remember(whatsAppLink) {
+        QrCodeGenerator.generate(whatsAppLink)
     }
+    val hasClientPhone = record.phone.isNotBlank()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -70,9 +74,14 @@ fun TicketQrCodeDialog(
                 )
 
                 Text(
-                    text = "Ao escanear, o celular do cliente abrirá o ticket como um " +
-                        "cartão visual, com um botão para salvar a imagem na galeria " +
-                        "(ou enviar por WhatsApp, se preferir).",
+                    text = if (hasClientPhone) {
+                        "Ao escanear, o WhatsApp do cliente abrirá a conversa com o " +
+                            "número informado, já com o ticket preenchido."
+                    } else {
+                        "Ao escanear, o WhatsApp abrirá a lista de conversas com o " +
+                            "ticket já preenchido. Basta o cliente tocar no próprio " +
+                            "contato (\"Você\") para guardar o ticket com ele mesmo."
+                    },
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

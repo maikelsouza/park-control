@@ -57,25 +57,29 @@ fun ParkingRecord.toTicketMessage(): String {
 }
 
 /**
- * URL base da página estática (hospedada via GitHub Pages, sem backend próprio)
- * que exibe o ticket digital como um cartão visual e permite salvá-lo como
- * imagem no celular do cliente. Ver `docs/ticket/index.html` no repositório.
+ * Monta o link "click to chat" do WhatsApp (https://wa.me) contendo o texto do
+ * ticket digital já pré-preenchido. Esse é o conteúdo real codificado dentro do
+ * QR-code: ao escanear com a câmera do celular, o sistema abre o WhatsApp (ou,
+ * caso não esteja instalado, o navegador) com a mensagem do ticket pronta para
+ * ser enviada. Não depende de nenhuma página/servidor externo — o link em si
+ * só é resolvido pelo próprio WhatsApp já instalado no celular do cliente.
+ *
+ * O destinatário é o próprio telefone informado pelo cliente no momento da
+ * entrada ([ParkingRecord.phone]) — ou seja, ao escanear com o celular dele,
+ * o WhatsApp abre a conversa/nota para esse mesmo número, servindo como um
+ * comprovante digital que fica salvo no próprio WhatsApp do cliente. Quando o
+ * telefone não foi informado na entrada, o link abre o WhatsApp sem
+ * destinatário definido, e o próprio cliente escolhe para qual contato enviar
+ * (por exemplo, o próprio contato "Você").
  */
-private const val TICKET_PAGE_BASE_URL = "https://maikelsouza.github.io/park-control/ticket/"
-
-/**
- * Monta a URL da página do ticket digital com os dados do registro codificados
- * como query params. Esse é o conteúdo real codificado dentro do QR-code: ao
- * escanear com a câmera do celular, o navegador abre uma página que mostra o
- * ticket como um cartão visual, com um botão para salvar a imagem diretamente
- * no celular do cliente (galeria/downloads) — sem depender do WhatsApp estar
- * instalado, e reconhecível por qualquer leitor de QR-code (link https comum).
- */
-fun ParkingRecord.toTicketPageUrl(): String {
-    fun encode(value: String) = URLEncoder.encode(value, "UTF-8")
-    val placa = encode(licensePlate)
-    val entrada = encode(entryTime.formatToTicketDisplay())
-    val ticket = encode(ticketNumber.formatAsTicketNumber())
-    return "$TICKET_PAGE_BASE_URL?placa=$placa&entrada=$entrada&ticket=$ticket"
+fun ParkingRecord.toWhatsAppTicketLink(): String {
+    val encodedMessage = URLEncoder.encode(toTicketMessage(), "UTF-8")
+        .replace("+", "%20")
+    val phoneDigits = phone.filter(Char::isDigit)
+    return if (phoneDigits.isNotBlank()) {
+        "https://wa.me/$phoneDigits?text=$encodedMessage"
+    } else {
+        "https://wa.me/?text=$encodedMessage"
+    }
 }
 
