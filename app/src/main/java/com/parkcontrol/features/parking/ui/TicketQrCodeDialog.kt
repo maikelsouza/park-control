@@ -22,30 +22,28 @@ import com.parkcontrol.core.utils.QrCodeGenerator
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.formatAsTicketNumber
 import com.parkcontrol.features.parking.domain.model.formatToTicketDisplay
-import com.parkcontrol.features.parking.domain.model.toWhatsAppTicketLink
+import com.parkcontrol.features.parking.domain.model.toTicketMessage
 
 /**
  * Dialog exibido ao clicar em "Gerar QR-Code" na tela de entrada, representando
- * o ticket digital de estacionamento: um QR-code que, ao ser escaneado (com a
- * câmera/leitor de QR-code do celular do cliente), abre o WhatsApp com o texto
- * do ticket (placa, entrada e número do ticket) já pré-preenchido, endereçado
- * ao próprio telefone do cliente informado na entrada (ou sem destinatário
- * definido, caso o telefone não tenha sido informado). Não depende de nenhuma
- * página/servidor externo — funciona totalmente offline até o momento de
- * enviar a mensagem.
+ * o ticket digital de estacionamento: um QR-code com o texto puro do ticket
+ * (placa, entrada e número do ticket). Ao ser escaneado com a câmera/app de
+ * QR-code do celular do cliente, o texto é exibido diretamente na tela —
+ * 100% offline, sem depender de internet, de servidor externo ou de qualquer
+ * app específico instalado. O cliente pode copiar o texto ou tirar um print
+ * da tela para guardar o ticket no próprio celular.
  */
 @Composable
 fun TicketQrCodeDialog(
     record: ParkingRecord,
     onDismiss: () -> Unit
 ) {
-    val whatsAppLink = remember(record.id, record.ticketNumber, record.phone) {
-        record.toWhatsAppTicketLink()
+    val ticketMessage = remember(record.id, record.ticketNumber) {
+        record.toTicketMessage()
     }
-    val qrBitmap = remember(whatsAppLink) {
-        QrCodeGenerator.generate(whatsAppLink)
+    val qrBitmap = remember(ticketMessage) {
+        QrCodeGenerator.generate(ticketMessage)
     }
-    val hasClientPhone = record.phone.isNotBlank()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -74,14 +72,9 @@ fun TicketQrCodeDialog(
                 )
 
                 Text(
-                    text = if (hasClientPhone) {
-                        "Ao escanear, o WhatsApp do cliente abrirá a conversa com o " +
-                            "número informado, já com o ticket preenchido."
-                    } else {
-                        "Ao escanear, o WhatsApp abrirá a lista de conversas com o " +
-                            "ticket já preenchido. Basta o cliente tocar no próprio " +
-                            "contato (\"Você\") para guardar o ticket com ele mesmo."
-                    },
+                    text = "Ao escanear, o texto do ticket aparece direto na tela " +
+                        "(sem internet). O cliente pode copiar ou tirar um print " +
+                        "para guardar no celular.",
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
