@@ -69,6 +69,27 @@ import androidx.compose.ui.text.input.TextFieldValue
 private val SuccessGreen = Color(0xFF28A745)
 private const val PLATE_ALPHANUMERIC_LENGTH = 7
 
+/**
+ * Returns the keyboard type expected for the character at [alnumIndex] (0-based, counting
+ * only letters/digits) of the plate, mirroring the position rules used by
+ * [formatPlateInput] so the on-screen keyboard automatically switches between letters and
+ * numbers as the user types.
+ */
+private fun plateKeyboardTypeForPosition(plateType: PlateType, alnumIndex: Int): KeyboardType {
+    return when (plateType) {
+        PlateType.MERCOSUL -> when (alnumIndex) {
+            // LLLNLNN — positions: 0-2 letter, 3 digit, 4 letter, 5-6 digit
+            0, 1, 2, 4 -> KeyboardType.Text
+            else -> KeyboardType.Number
+        }
+        PlateType.OUTRA -> when (alnumIndex) {
+            // LLL-NNNN — positions: 0-2 letter, 3-6 digit
+            0, 1, 2 -> KeyboardType.Text
+            else -> KeyboardType.Number
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParkingScreen(
@@ -176,6 +197,13 @@ private fun VehiclePlateSection(
         plateFieldValue = TextFieldValue(currentPlate, TextRange(currentPlate.length))
     }
 
+    // Determines which keyboard (letters or numbers) should be shown based on the
+    // type of character expected at the cursor's current position, so the keyboard
+    // switches automatically as the user progresses through the plate mask.
+    val cursorPosition = plateFieldValue.selection.end.coerceIn(0, plateFieldValue.text.length)
+    val alnumBeforeCursor = plateFieldValue.text.take(cursorPosition).count { it.isLetterOrDigit() }
+    val currentKeyboardType = plateKeyboardTypeForPosition(plateType, alnumBeforeCursor)
+
     Text(
         text = "Placa do Veículo",
         fontSize = 16.sp,
@@ -211,6 +239,15 @@ private fun VehiclePlateSection(
         singleLine = true,
         shape = RoundedCornerShape(8.dp),
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+        // Autocorrect/word-suggestion composing is what makes Gboard reset its
+        // temporary "123" numeric layer back to letters after a single digit is
+        // typed (the reformat below replaces the whole TextFieldValue on every
+        // keystroke, dropping the IME's composing region). Disabling it keeps the
+        // numeric layer active while the user finishes typing the plate's digits.
+        keyboardOptions = KeyboardOptions(
+            keyboardType = currentKeyboardType,
+            autoCorrectEnabled = false
+        ),
         isError = viewModel.licensePlateError.value != null,
         supportingText = {
             viewModel.licensePlateError.value?.let {
