@@ -13,6 +13,8 @@ import com.parkcontrol.features.agreements.domain.usecase.GetActiveAgreementsUse
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
 import com.parkcontrol.features.parking.domain.usecase.CalculateParkingPriceUseCase
+import com.parkcontrol.features.parking.domain.usecase.FindActiveParkingMatchUseCase
+import com.parkcontrol.features.parking.domain.usecase.RegisterParkingExitUseCase
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.time.LocalDateTime
@@ -22,7 +24,11 @@ class ParkingViewModel(
     application: Application,
     private val getActiveAgreementsUseCase: GetActiveAgreementsUseCase,
     private val calculateParkingPrice:
-        CalculateParkingPriceUseCase = CalculateParkingPriceUseCase()
+        CalculateParkingPriceUseCase = CalculateParkingPriceUseCase(),
+    private val findActiveParkingMatchUseCase: FindActiveParkingMatchUseCase =
+        FindActiveParkingMatchUseCase(),
+    private val registerParkingExitUseCase: RegisterParkingExitUseCase =
+        RegisterParkingExitUseCase(calculateParkingPrice)
 ) : AndroidViewModel(application) {
 
     // Get use case from core dependencies (shared across features)
@@ -57,7 +63,6 @@ class ParkingViewModel(
     val phone: State<String> = _phone
 
     private val _parkingRecords = mutableStateOf<List<ParkingRecord>>(emptyList())
-    val parkingRecords: State<List<ParkingRecord>> = _parkingRecords
 
     private val _selectedRecord = mutableStateOf<ParkingRecord?>(null)
     val selectedRecord: State<ParkingRecord?> = _selectedRecord
@@ -78,10 +83,8 @@ class ParkingViewModel(
     val manualDiscount: State<String> = _manualDiscount
 
     private val _first30MinutesPrice = mutableStateOf("5.00")
-    val first30MinutesPrice: State<String> = _first30MinutesPrice
 
     private val _pricePerHour = mutableStateOf("7.00")
-    val pricePerHour: State<String> = _pricePerHour
 
     private val _toastMessage = mutableStateOf<String?>(null)
     val toastMessage: State<String?> = _toastMessage
@@ -118,6 +121,7 @@ class ParkingViewModel(
                 syncSelectedRecord(records)
                 syncQrCodeRecord(records)
                 refreshOpenRecordSuggestions()
+                autoSelectExactMatch()
             }
         }
 
@@ -133,11 +137,13 @@ class ParkingViewModel(
         _licensePlate.value = plate.uppercase()
         if (plate.isNotBlank()) _licensePlateError.value = null
         refreshOpenRecordSuggestions()
+        autoSelectExactMatch()
     }
 
     fun updatePhone(phone: String) {
         _phone.value = phone.filter(Char::isDigit).take(11)
         refreshOpenRecordSuggestions()
+        autoSelectExactMatch()
     }
 
     fun selectSuggestedRecord(record: ParkingRecord) {
@@ -228,21 +234,13 @@ class ParkingViewModel(
         val pricePerHour = _pricePerHour.value.toDoubleOrNull()
                 ?: 7.0
 
-        val amountPaid = calculateParkingPrice(
-                entry = record.entryTime,
-                exit = exitTime,
-                first30MinutesPrice = first30MinutesPrice,
-                pricePerHour = pricePerHour
-        )
-
-        val discountAmount = record.discountAmount ?: 0.0
-        val finalAmount = (amountPaid - discountAmount).coerceAtLeast(0.0)
-
-        val updatedRecord = record.copy(
+        val updatedRecord = registerParkingExitUseCase(
+            record = record,
             exitTime = exitTime,
-            status = ParkingStatus.FINALIZADO,
-            amountPaid = finalAmount
+            first30MinutesPrice = first30MinutesPrice,
+            pricePerHour = pricePerHour
         )
+
 
         viewModelScope.launch {
             updateParkingRecordUseCase(updatedRecord)
@@ -257,7 +255,60 @@ class ParkingViewModel(
         }
     }
 
-    fun getLastRecord(): ParkingRecord? = _parkingRecords.value.firstOrNull()
+
+    /**
+     * Seleciona automaticamente o registro em aberto (ESTACIONADO) cuja placa
+     * (ou telefone, quando digitado por completo) corresponda exatamente ao
+     * que foi digitado, sem exigir que o usuário clique manualmente na
+     * sugestão. Isso permite dar saída ou gerar o QR-code do ticket digital
+     * novamente apenas digitando a placa (ou telefone) já existente, sem
+     * precisar navegar pela lista de sugestões — e mantém os campos de
+     * placa/telefone sincronizados com o registro, igual ao que acontece ao
+     * clicar manualmente numa sugestão.
+     *
+     * A regra de correspondência em si vive em [FindActiveParkingMatchUseCase]
+     * (camada de domínio); aqui só orquestramos a sincronização do estado da UI.
+     */
+    private fun autoSelectExactMatch() {
+        val plateFilter = _licensePlate.value
+        val phoneFilter = _phone.value
+
+        val match = findActiveParkingMatchUseCase(
+            records = _parkingRecords.value,
+            plateFilter = plateFilter,
+            phoneFilter = phoneFilter
+        )
+
+        if (match != null) {
+            if (_selectedRecord.value?.id != match.id) {
+                _selectedRecord.value = match
+            }
+            // Mantém os dois campos sincronizados com o registro encontrado.
+            val matchPhoneDigits = match.phone.filter(Char::isDigit).take(11)
+            if (_phone.value != matchPhoneDigits) {
+                _phone.value = matchPhoneDigits
+            }
+            val matchPlateUpper = match.licensePlate.uppercase()
+            if (_licensePlate.value != matchPlateUpper) {
+                _licensePlate.value = matchPlateUpper
+            }
+            return
+        }
+
+        // Sem correspondência exata: se o registro selecionado não bate mais
+        // com o que foi digitado, limpa a seleção para não deixar os botões
+        // de Saída/QR-code habilitados para o veículo errado.
+        val selected = _selectedRecord.value ?: return
+        val normalizedPlate = plateFilter.trim().uppercase()
+        val normalizedPhone = phoneFilter.filter(Char::isDigit)
+        val platesDiffer = normalizedPlate.isNotEmpty() &&
+            selected.licensePlate.uppercase() != normalizedPlate
+        val phonesDiffer = normalizedPhone.isNotEmpty() &&
+            selected.phone.filter(Char::isDigit) != normalizedPhone
+        if (platesDiffer || phonesDiffer) {
+            _selectedRecord.value = null
+        }
+    }
 
     private fun refreshOpenRecordSuggestions() {
         val plateFilter = _licensePlate.value.trim().uppercase()
