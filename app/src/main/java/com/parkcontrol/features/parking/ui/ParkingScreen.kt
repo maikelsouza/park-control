@@ -67,6 +67,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 
 private val SuccessGreen = Color(0xFF28A745)
+private const val PLATE_ALPHANUMERIC_LENGTH = 7
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -425,6 +426,8 @@ private fun ActionButtonsSection(
 
         Button(
             onClick = viewModel::registerEntry,
+            enabled = viewModel.licensePlate.value.count { it.isLetterOrDigit() } == PLATE_ALPHANUMERIC_LENGTH &&
+                selectedRecord?.status != ParkingStatus.ESTACIONADO,
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp),
