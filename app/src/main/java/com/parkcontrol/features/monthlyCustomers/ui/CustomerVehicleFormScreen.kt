@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.ui.masks.formatPlateInputValue
 import com.parkcontrol.core.ui.masks.plateInputPlaceholder
+import com.parkcontrol.core.ui.masks.plateKeyboardTypeFor
 import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.monthlyCustomers.domain.model.VehicleCategory
 import java.util.Locale
@@ -331,6 +332,7 @@ fun CustomerVehicleFormScreen(
                 }
 
                 // ── Placa ──────────────────────────────────────────────────
+                val plateKeyboardType = plateKeyboardTypeFor(plate, plateType)
                 OutlinedTextField(
                     value = plate,
                     onValueChange = { newValue -> plate = formatPlateInputValue(newValue, plateType) },
@@ -339,7 +341,7 @@ fun CustomerVehicleFormScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
+                        keyboardType = plateKeyboardType,
                         capitalization = KeyboardCapitalization.Characters,
                         autoCorrectEnabled = false
                     ),

@@ -1,6 +1,7 @@
 package com.parkcontrol.core.ui.masks
 
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 
@@ -76,3 +77,33 @@ fun plateInputPlaceholder(plateType: PlateType): String {
     return if (plateType == PlateType.MERCOSUL) "ABC1D23" else "ABC-1234"
 }
 
+/**
+ * Returns the keyboard type expected for the character at [alnumIndex] (0-based, counting
+ * only letters/digits) of the plate, mirroring the position rules used by
+ * [formatPlateInput] so the on-screen keyboard automatically switches between letters and
+ * numbers as the user types.
+ */
+fun plateKeyboardTypeForPosition(plateType: PlateType, alnumIndex: Int): KeyboardType {
+    return when (plateType) {
+        PlateType.MERCOSUL -> when (alnumIndex) {
+            // LLLNLNN — positions: 0-2 letter, 3 digit, 4 letter, 5-6 digit
+            0, 1, 2, 4 -> KeyboardType.Text
+            else -> KeyboardType.Number
+        }
+        PlateType.OUTRA -> when (alnumIndex) {
+            // LLL-NNNN — positions: 0-2 letter, 3-6 digit
+            0, 1, 2 -> KeyboardType.Text
+            else -> KeyboardType.Number
+        }
+    }
+}
+
+/**
+ * Computes the keyboard type to use for a plate [TextFieldValue] based on the alnum
+ * position right before the cursor, using [plateKeyboardTypeForPosition].
+ */
+fun plateKeyboardTypeFor(value: TextFieldValue, plateType: PlateType): KeyboardType {
+    val cursorPosition = value.selection.end.coerceIn(0, value.text.length)
+    val alnumBeforeCursor = value.text.take(cursorPosition).count { it.isLetterOrDigit() }
+    return plateKeyboardTypeForPosition(plateType, alnumBeforeCursor)
+}

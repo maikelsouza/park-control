@@ -57,6 +57,7 @@ import com.parkcontrol.core.ui.masks.PhoneMaskTransformation
 import com.parkcontrol.core.ui.masks.formatPlateInputValue
 import com.parkcontrol.core.ui.masks.onlyPhoneDigits
 import com.parkcontrol.core.ui.masks.plateInputPlaceholder
+import com.parkcontrol.core.ui.masks.plateKeyboardTypeFor
 import com.parkcontrol.core.ui.theme.ParkControlTheme
 import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
@@ -69,26 +70,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 private val SuccessGreen = Color(0xFF28A745)
 private const val PLATE_ALPHANUMERIC_LENGTH = 7
 
-/**
- * Returns the keyboard type expected for the character at [alnumIndex] (0-based, counting
- * only letters/digits) of the plate, mirroring the position rules used by
- * [formatPlateInput] so the on-screen keyboard automatically switches between letters and
- * numbers as the user types.
- */
-private fun plateKeyboardTypeForPosition(plateType: PlateType, alnumIndex: Int): KeyboardType {
-    return when (plateType) {
-        PlateType.MERCOSUL -> when (alnumIndex) {
-            // LLLNLNN — positions: 0-2 letter, 3 digit, 4 letter, 5-6 digit
-            0, 1, 2, 4 -> KeyboardType.Text
-            else -> KeyboardType.Number
-        }
-        PlateType.OUTRA -> when (alnumIndex) {
-            // LLL-NNNN — positions: 0-2 letter, 3-6 digit
-            0, 1, 2 -> KeyboardType.Text
-            else -> KeyboardType.Number
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -200,9 +181,7 @@ private fun VehiclePlateSection(
     // Determines which keyboard (letters or numbers) should be shown based on the
     // type of character expected at the cursor's current position, so the keyboard
     // switches automatically as the user progresses through the plate mask.
-    val cursorPosition = plateFieldValue.selection.end.coerceIn(0, plateFieldValue.text.length)
-    val alnumBeforeCursor = plateFieldValue.text.take(cursorPosition).count { it.isLetterOrDigit() }
-    val currentKeyboardType = plateKeyboardTypeForPosition(plateType, alnumBeforeCursor)
+    val currentKeyboardType = plateKeyboardTypeFor(plateFieldValue, plateType)
 
     Text(
         text = "Placa do Veículo",

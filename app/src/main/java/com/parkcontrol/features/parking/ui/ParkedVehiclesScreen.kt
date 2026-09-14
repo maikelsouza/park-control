@@ -55,11 +55,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
 import com.parkcontrol.core.ui.masks.formatPlateInputValue
 import com.parkcontrol.core.ui.masks.plateInputPlaceholder
+import com.parkcontrol.core.ui.masks.plateKeyboardTypeFor
 import com.parkcontrol.features.monthlyCustomers.domain.model.PlateType
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.ParkingStatus
@@ -257,6 +259,9 @@ private fun ParkedVehiclesContent(
                             label = { Text("Placa") },
                             placeholder = { Text(plateInputPlaceholder(plateTypeFilter)) },
                             singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = plateKeyboardTypeFor(plateFilterFieldValue, plateTypeFilter)
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         )
 
