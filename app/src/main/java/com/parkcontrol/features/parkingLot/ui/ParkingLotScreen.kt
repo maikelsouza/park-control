@@ -132,6 +132,20 @@ fun ParkingLotEntryScreen(
         )
 
         OutlinedTextField(
+            value = viewModel.totalSpots,
+            onValueChange = viewModel::onTotalSpotsChange,
+            label = { Text("Número de vagas") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            supportingText = {
+                if (viewModel.totalSpots.length >= ParkingLotViewModel.MAX_TOTAL_SPOTS_LENGTH) {
+                    Text("Limite de ${ParkingLotViewModel.MAX_TOTAL_SPOTS_LENGTH} caracteres atingido")
+                }
+            }
+        )
+
+        OutlinedTextField(
             value = viewModel.street,
             onValueChange = viewModel::onStreetChange,
             label = { Text("Rua *") },
@@ -266,6 +280,7 @@ fun ParkingLotEntryScreen(
                 if (zipCodeError != null) Text(zipCodeError, color = colorScheme.error)
             }
         )
+
 
         Button(
             onClick = {

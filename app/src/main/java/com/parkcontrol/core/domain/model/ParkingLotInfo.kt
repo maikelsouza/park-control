@@ -14,6 +14,7 @@ data class ParkingLotInfo(
     val neighborhood: String = "",
     val city: String = "",
     val state: String = "",
-    val zipCode: String = ""
+    val zipCode: String = "",
+    val totalSpots: Int? = null
 )
 

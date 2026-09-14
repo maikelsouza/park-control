@@ -2,6 +2,7 @@ package com.parkcontrol.core.data.repository
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.parkcontrol.core.datastore.settingsPreferencesDataStore
 import com.parkcontrol.core.datastore.settingsPreferencesFlow
@@ -30,7 +31,8 @@ class ParkingLotInfoRepositoryImpl(
                 neighborhood = prefs[ParkingLotInfoDataStoreKeys.NEIGHBORHOOD].orEmpty(),
                 city = prefs[ParkingLotInfoDataStoreKeys.CITY].orEmpty(),
                 state = prefs[ParkingLotInfoDataStoreKeys.STATE].orEmpty(),
-                zipCode = prefs[ParkingLotInfoDataStoreKeys.ZIP_CODE].orEmpty()
+                zipCode = prefs[ParkingLotInfoDataStoreKeys.ZIP_CODE].orEmpty(),
+                totalSpots = prefs[ParkingLotInfoDataStoreKeys.TOTAL_SPOTS]
             )
         }
     }
@@ -46,6 +48,11 @@ class ParkingLotInfoRepositoryImpl(
             prefs[ParkingLotInfoDataStoreKeys.CITY] = info.city
             prefs[ParkingLotInfoDataStoreKeys.STATE] = info.state
             prefs[ParkingLotInfoDataStoreKeys.ZIP_CODE] = info.zipCode
+            if (info.totalSpots != null) {
+                prefs[ParkingLotInfoDataStoreKeys.TOTAL_SPOTS] = info.totalSpots
+            } else {
+                prefs.remove(ParkingLotInfoDataStoreKeys.TOTAL_SPOTS)
+            }
         }
     }
 }
@@ -63,5 +70,6 @@ object ParkingLotInfoDataStoreKeys {
     val CITY = stringPreferencesKey("parking_lot_city")
     val STATE = stringPreferencesKey("parking_lot_state")
     val ZIP_CODE = stringPreferencesKey("parking_lot_zip_code")
+    val TOTAL_SPOTS = intPreferencesKey("parking_lot_total_spots")
 }
 

@@ -62,6 +62,9 @@ class ParkingLotViewModel(
     var zipCode by mutableStateOf("")
         private set
 
+    var totalSpots by mutableStateOf("")
+        private set
+
     var showValidation by mutableStateOf(false)
         private set
 
@@ -86,6 +89,7 @@ class ParkingLotViewModel(
                 city = info.city
                 state = info.state
                 zipCode = info.zipCode
+                totalSpots = info.totalSpots?.toString().orEmpty()
             }
         }
     }
@@ -126,6 +130,10 @@ class ParkingLotViewModel(
         zipCode = value.onlyZipCodeDigits().take(8)
     }
 
+    fun onTotalSpotsChange(value: String) {
+        totalSpots = value.filter { it.isDigit() }.take(MAX_TOTAL_SPOTS_LENGTH)
+    }
+
     fun isValid(): Boolean {
         return name.isNotBlank() &&
             phone.isNotBlank() &&
@@ -152,7 +160,8 @@ class ParkingLotViewModel(
                     neighborhood = neighborhood.trim(),
                     city = city.trim(),
                     state = state.trim().uppercase().take(2),
-                    zipCode = zipCode.onlyZipCodeDigits().take(8)
+                    zipCode = zipCode.onlyZipCodeDigits().take(8),
+                    totalSpots = totalSpots.trim().toIntOrNull()
                 )
                 saveParkingLotInfoUseCase(info)
                 isSaving = false
@@ -179,6 +188,7 @@ class ParkingLotViewModel(
         const val MAX_COMPLEMENT_LENGTH = 100
         const val MAX_NEIGHBORHOOD_LENGTH = 100
         const val MAX_CITY_LENGTH = 100
+        const val MAX_TOTAL_SPOTS_LENGTH = 5
     }
 }
 
