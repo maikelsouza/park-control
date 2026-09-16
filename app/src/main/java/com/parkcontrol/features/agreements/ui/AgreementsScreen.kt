@@ -268,7 +268,7 @@ private fun AgreementsFormContent(
         OutlinedTextField(
             value = name,
             onValueChange = { name = it.take(AgreementFormViewModel.MAX_NAME_LENGTH) },
-            label = { Text("Nome do convênio *") },
+                    label = { Text("Nome *") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -285,7 +285,7 @@ private fun AgreementsFormContent(
         OutlinedTextField(
             value = contactName,
             onValueChange = { contactName = it.take(AgreementFormViewModel.MAX_CONTACT_NAME_LENGTH) },
-            label = { Text("Nome do responsável *") },
+            label = { Text("Responsável *") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -477,7 +477,9 @@ private fun AgreementsFormContent(
 
         OutlinedTextField(
             value = discountValue,
-            onValueChange = { typed -> discountValue = typed.onlyMoneyDigits().take(11) },
+            onValueChange = { typed ->
+                discountValue = typed.onlyMoneyDigits().take(AgreementFormViewModel.MAX_DISCOUNT_DIGITS)
+            },
             label = { Text("Valor de desconto (R$) *") },
             placeholder = { Text("Ex: 5,00") },
             modifier = Modifier.fillMaxWidth(),
@@ -486,7 +488,11 @@ private fun AgreementsFormContent(
             visualTransformation = CurrencyMaskTransformation,
             isError = discountError != null,
             supportingText = {
-                if (discountError != null) Text(discountError, color = colorScheme.error)
+                if (discountError != null) {
+                    Text(discountError, color = colorScheme.error)
+                } else {
+                    Text("Valor máximo: R$ 99,99")
+                }
             }
         )
 
@@ -516,7 +522,7 @@ private fun AgreementsFormContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = !isSaving,
+            enabled = !isSaving && isFormValid,
             colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary)
         ) {
             Icon(Icons.Default.Save, contentDescription = null)

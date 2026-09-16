@@ -105,6 +105,11 @@ class AgreementFormViewModel(
             return
         }
 
+        if (discountCents > MAX_DISCOUNT_CENTS) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Valor de desconto deve ser no máximo R$ 99,99")
+            return
+        }
+
         if (normalizedEmail.isNotBlank() && !EmailRegex.matches(normalizedEmail)) {
             _uiState.value = _uiState.value.copy(errorMessage = "Email inválido")
             return
@@ -171,10 +176,11 @@ class AgreementFormViewModel(
         const val MAX_CONTACT_NAME_LENGTH = 100
         const val MAX_EMAIL_LENGTH = 100
         const val MAX_STREET_LENGTH = 150
-        const val MAX_NUMBER_LENGTH = 10
+        const val MAX_NUMBER_LENGTH = 5
         const val MAX_COMPLEMENT_LENGTH = 100
-        const val MAX_NEIGHBORHOOD_LENGTH = 100
-        const val MAX_CITY_LENGTH = 100
+        const val MAX_NEIGHBORHOOD_LENGTH = 80
+        const val MAX_CITY_LENGTH = 80
+        const val MAX_DISCOUNT_CENTS = 9999
+        const val MAX_DISCOUNT_DIGITS = 4
     }
 }
-
