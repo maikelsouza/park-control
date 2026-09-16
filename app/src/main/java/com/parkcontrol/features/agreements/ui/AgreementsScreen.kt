@@ -66,6 +66,7 @@ fun AgreementsScreen(
     onNavigate: (String) -> Unit,
     agreementId: Int? = null,
     onFinish: (() -> Unit)? = null,
+    onSaveSuccess: ((String) -> Unit)? = null,
     onBack: (() -> Unit)? = null
 ) {
     AppDrawerScaffold(
@@ -108,9 +109,13 @@ fun AgreementsScreen(
             onErrorConsumed = {
                 viewModel.clearErrorMessage()
             },
-            onSuccessConsumed = {
+            onSuccessConsumed = { message ->
                 viewModel.clearSuccessMessage()
-                onFinish?.invoke()
+                if (onSaveSuccess != null) {
+                    onSaveSuccess(message)
+                } else {
+                    onFinish?.invoke()
+                }
             },
             isSaving = uiState.isSaving,
             errorMessage = uiState.errorMessage,
@@ -145,7 +150,7 @@ private fun AgreementsFormContent(
     onLoadForEdit: () -> Unit,
     selectedAgreement: com.parkcontrol.features.agreements.domain.model.Agreement?,
     onErrorConsumed: () -> Unit,
-    onSuccessConsumed: () -> Unit,
+    onSuccessConsumed: (String) -> Unit,
     isSaving: Boolean,
     errorMessage: String?,
     successMessage: String?
@@ -225,8 +230,11 @@ private fun AgreementsFormContent(
 
     LaunchedEffect(successMessage) {
         successMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            onSuccessConsumed()
+            // Não aguardamos o Snackbar aqui: navegar de volta deve ser
+            // imediato. A mensagem é repassada para a tela de listagem,
+            // que a exibirá após a navegação (evita atraso perceptível
+            // ao salvar um convênio).
+            onSuccessConsumed(it)
         }
     }
 

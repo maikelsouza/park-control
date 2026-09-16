@@ -25,6 +25,7 @@ import com.parkcontrol.features.parkingLot.ui.ParkingLotScreen
 import com.parkcontrol.features.settings.ui.SettingsScreen
 
 private const val MONTHLY_CUSTOMER_SAVE_RESULT_KEY = "monthly_customer_save_result"
+private const val AGREEMENT_SAVE_RESULT_KEY = "agreement_save_result"
 private const val HOME_SAVE_RESULT_KEY = "home_save_result"
 
 @Composable
@@ -231,18 +232,34 @@ fun AppNavigation(
         }
 
         composable(AppRoutes.Agreements.route) {
+            val saveResult by it.savedStateHandle
+                .getStateFlow(AGREEMENT_SAVE_RESULT_KEY, null as String?)
+                .collectAsState()
+
             ActiveAgreementsScreen(
                 onNavigate = navigateFromDrawer,
                 onNavigateForward = navigateForward,
-                currentRoute = AppRoutes.Agreements.route
+                currentRoute = AppRoutes.Agreements.route,
+                saveSuccessMessage = saveResult,
+                onSaveSuccessMessageShown = {
+                    it.savedStateHandle[AGREEMENT_SAVE_RESULT_KEY] = null
+                }
             )
         }
 
         composable(AppRoutes.AgreementsActive.route) {
+            val saveResult by it.savedStateHandle
+                .getStateFlow(AGREEMENT_SAVE_RESULT_KEY, null as String?)
+                .collectAsState()
+
             ActiveAgreementsScreen(
                 onNavigate = navigateFromDrawer,
                 onNavigateForward = navigateForward,
-                currentRoute = AppRoutes.AgreementsActive.route
+                currentRoute = AppRoutes.AgreementsActive.route,
+                saveSuccessMessage = saveResult,
+                onSaveSuccessMessageShown = {
+                    it.savedStateHandle[AGREEMENT_SAVE_RESULT_KEY] = null
+                }
             )
         }
 
@@ -270,7 +287,12 @@ fun AppNavigation(
             AgreementsScreen(
                 onNavigate = navigateFromDrawer,
                 agreementId = agreementId,
-                onFinish = { navController.popBackStack() },
+                onSaveSuccess = { message ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(AGREEMENT_SAVE_RESULT_KEY, message)
+                    navController.popBackStack()
+                },
                 onBack = { navController.popBackStack() }
             )
         }

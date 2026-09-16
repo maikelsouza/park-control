@@ -47,7 +47,9 @@ import java.util.Locale
 fun ActiveAgreementsScreen(
     onNavigate: (String) -> Unit,
     onNavigateForward: (String) -> Unit = onNavigate,
-    currentRoute: String = AppRoutes.AgreementsActive.route
+    currentRoute: String = AppRoutes.AgreementsActive.route,
+    saveSuccessMessage: String? = null,
+    onSaveSuccessMessageShown: () -> Unit = {}
 ) {
     AppDrawerScaffold(
         currentRoute = currentRoute,
@@ -84,6 +86,13 @@ fun ActiveAgreementsScreen(
             uiState.successMessage?.let { message ->
                 snackbarHostState.showSnackbar(message)
                 viewModel.clearSuccessMessage()
+            }
+        }
+
+        LaunchedEffect(saveSuccessMessage) {
+            saveSuccessMessage?.let { message ->
+                snackbarHostState.showSnackbar(message)
+                onSaveSuccessMessageShown()
             }
         }
 
