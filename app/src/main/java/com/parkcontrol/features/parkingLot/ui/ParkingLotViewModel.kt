@@ -95,7 +95,7 @@ class ParkingLotViewModel(
     }
 
     fun onNameChange(value: String) {
-        name = value
+        name = value.take(MAX_NAME_LENGTH)
     }
 
     fun onPhoneChange(value: String) {
@@ -127,7 +127,7 @@ class ParkingLotViewModel(
     }
 
     fun onZipCodeChange(value: String) {
-        zipCode = value.onlyZipCodeDigits().take(8)
+        zipCode = value.onlyZipCodeDigits().take(ZIP_CODE_LENGTH)
     }
 
     fun onTotalSpotsChange(value: String) {
@@ -141,7 +141,7 @@ class ParkingLotViewModel(
             neighborhood.isNotBlank() &&
             city.isNotBlank() &&
             state.isNotBlank() &&
-            zipCode.isNotBlank()
+            zipCode.length == ZIP_CODE_LENGTH
     }
 
     fun saveParkingLot(onSaved: () -> Unit) {
@@ -160,7 +160,7 @@ class ParkingLotViewModel(
                     neighborhood = neighborhood.trim(),
                     city = city.trim(),
                     state = state.trim().uppercase().take(2),
-                    zipCode = zipCode.onlyZipCodeDigits().take(8),
+                    zipCode = zipCode.onlyZipCodeDigits().take(ZIP_CODE_LENGTH),
                     totalSpots = totalSpots.trim().toIntOrNull()
                 )
                 saveParkingLotInfoUseCase(info)
@@ -183,11 +183,13 @@ class ParkingLotViewModel(
     }
 
     companion object {
+        const val ZIP_CODE_LENGTH = 8
+        const val MAX_NAME_LENGTH = 100
         const val MAX_STREET_LENGTH = 150
-        const val MAX_NUMBER_LENGTH = 10
+        const val MAX_NUMBER_LENGTH = 5
         const val MAX_COMPLEMENT_LENGTH = 100
-        const val MAX_NEIGHBORHOOD_LENGTH = 100
-        const val MAX_CITY_LENGTH = 100
+        const val MAX_NEIGHBORHOOD_LENGTH = 80
+        const val MAX_CITY_LENGTH = 80
         const val MAX_TOTAL_SPOTS_LENGTH = 5
     }
 }

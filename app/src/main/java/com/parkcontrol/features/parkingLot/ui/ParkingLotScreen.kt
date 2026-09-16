@@ -78,11 +78,17 @@ fun ParkingLotEntryScreen(
     var stateExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val nameError = requiredFieldError(viewModel.name, viewModel.showValidation)
     val streetError = requiredFieldError(viewModel.street, viewModel.showValidation)
     val neighborhoodError = requiredFieldError(viewModel.neighborhood, viewModel.showValidation)
     val cityError = requiredFieldError(viewModel.city, viewModel.showValidation)
     val stateError = requiredFieldError(viewModel.state, viewModel.showValidation)
-    val zipCodeError = requiredFieldError(viewModel.zipCode, viewModel.showValidation)
+    val zipCodeError = when {
+        !viewModel.showValidation -> null
+        viewModel.zipCode.isBlank() -> "Campo obrigatório"
+        viewModel.zipCode.length != 8 -> "CEP deve ter 8 dígitos"
+        else -> null
+    }
 
     LaunchedEffect(viewModel.errorMessage) {
         viewModel.errorMessage?.let { message ->
@@ -115,9 +121,17 @@ fun ParkingLotEntryScreen(
         OutlinedTextField(
             value = viewModel.name,
             onValueChange = viewModel::onNameChange,
-            label = { Text("Nome") },
+            label = { Text("Nome *") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            isError = nameError != null,
+            supportingText = {
+                if (nameError != null) {
+                    Text(nameError, color = colorScheme.error)
+                } else if (viewModel.name.length >= ParkingLotViewModel.MAX_NAME_LENGTH) {
+                    Text("Limite de ${ParkingLotViewModel.MAX_NAME_LENGTH} caracteres atingido")
+                }
+            }
         )
 
         OutlinedTextField(
@@ -291,7 +305,7 @@ fun ParkingLotEntryScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = !viewModel.isSaving,
+            enabled = !viewModel.isSaving && viewModel.isValid(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorScheme.primary
             )
