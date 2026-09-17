@@ -503,12 +503,15 @@ fun MonthlyCustomerFormScreen(
                     if (isMonthly) {
                         OutlinedTextField(
                             value = monthlyFee,
-                            onValueChange = { typed -> monthlyFee = typed.onlyMoneyDigits().take(11) },
+                            onValueChange = { typed -> monthlyFee = typed.onlyMoneyDigits().take(5) },
                             label = { Text("Mensalidade fixa *") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            visualTransformation = CurrencyMaskTransformation
+                            visualTransformation = CurrencyMaskTransformation,
+                            supportingText = {
+                                Text("Valor máximo: R$ 999,99")
+                            }
                         )
 
                         ExposedDropdownMenuBox(
