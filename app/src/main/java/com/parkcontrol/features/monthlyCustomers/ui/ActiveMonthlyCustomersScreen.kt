@@ -326,6 +326,9 @@ fun MonthlyCustomerFormScreen(
         var sexoMenuExpanded by remember { mutableStateOf(false) }
         var dueDayMenuExpanded by remember { mutableStateOf(false) }
 
+        val isFormValid = name.isNotBlank() &&
+            (!isMonthly || (monthlyFee.isNotBlank() && dueDay.isNotBlank()))
+
         LaunchedEffect(customerId) {
             viewModel.loadCustomerForEdit(customerId)
         }
@@ -597,7 +600,7 @@ fun MonthlyCustomerFormScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = !uiState.isLoading,
+                    enabled = !uiState.isLoading && isFormValid,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(Icons.Default.Save, contentDescription = null)
