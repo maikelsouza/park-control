@@ -191,7 +191,7 @@ private fun VehicleCard(
                         fontWeight = FontWeight.Bold
                     )
                     if (vehicle.plate.isNotBlank()) {
-                        Text("Placa: ${vehicle.plate}  (${vehicle.plateType.displayName})")
+                        Text("Placa: ${vehicle.plate}")
                     }
                     if (vehicle.color.isNotBlank()) Text("Cor: ${vehicle.color}")
                     Text("Categoria: ${vehicle.category.displayName}")
