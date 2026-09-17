@@ -279,11 +279,16 @@ fun CustomerVehicleFormScreen(
                 // ── Modelo ─────────────────────────────────────────────────
                 OutlinedTextField(
                     value = model,
-                    onValueChange = { model = it },
+                    onValueChange = { model = it.take(80) },
                     label = { Text("Modelo") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                    supportingText = {
+                        if (model.length >= 80) {
+                            Text("Limite de 80 caracteres atingido")
+                        }
+                    }
                 )
 
                 // ── Cor ────────────────────────────────────────────────────
@@ -352,12 +357,17 @@ fun CustomerVehicleFormScreen(
                 // ── Vaga ───────────────────────────────────────────────────
                 OutlinedTextField(
                     value = parkingSpot,
-                    onValueChange = { parkingSpot = it.uppercase(Locale.ROOT) },
+                    onValueChange = { parkingSpot = it.uppercase(Locale.ROOT).take(20) },
                     label = { Text("Vaga (opcional)") },
                     placeholder = { Text("Ex: A-12, 101") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters)
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                    supportingText = {
+                        if (parkingSpot.length >= 20) {
+                            Text("Limite de 20 caracteres atingido")
+                        }
+                    }
                 )
             }
 
