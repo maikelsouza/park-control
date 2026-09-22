@@ -347,7 +347,7 @@ private fun VehiclePlateSection(
                 text = if (hasSelectedAgreement) {
                     "Desabilitado enquanto um convênio estiver selecionado"
                 } else {
-                    "Informe o valor de desconto manual (sem convênio)"
+                    "Informe o valor de desconto manual (sem convênio). Valor máximo: R$ 99,99"
                 },
                 fontSize = 11.sp
             )

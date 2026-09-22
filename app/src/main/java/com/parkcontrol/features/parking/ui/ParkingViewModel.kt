@@ -163,7 +163,7 @@ class ParkingViewModel(
     fun updateManualDiscount(value: String) {
         // Só é permitido digitar um desconto manual quando nenhum convênio está selecionado
         if (_selectedAgreement.value != null) return
-        _manualDiscount.value = value.onlyMoneyDigits().take(11)
+        _manualDiscount.value = value.onlyMoneyDigits().take(MAX_DISCOUNT_DIGITS)
     }
 
     fun onScreenOpened() {
@@ -356,4 +356,7 @@ class ParkingViewModel(
         return formatter.format(this / 100.0)
     }
 
+    companion object {
+        const val MAX_DISCOUNT_DIGITS = 4
+    }
 }
