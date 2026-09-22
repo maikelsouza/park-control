@@ -470,7 +470,7 @@ private fun ParkedVehicleCard(record: ParkingRecord) {
 
             record.exitTime?.let {
                 Text(
-                    text = "Saida: ${it.formatToBrazilian()}",
+                    text = "Saída: ${it.formatToBrazilian()}",
                     color = colorScheme.onSurfaceVariant
                 )
             }

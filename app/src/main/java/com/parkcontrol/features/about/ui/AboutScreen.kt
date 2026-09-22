@@ -63,7 +63,7 @@ fun AboutScreen(
                 )
 
                 Text(
-                    text = "Contato: $contactEmail",
+                    text = "contato: $contactEmail",
                     color = colorScheme.primary,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier
