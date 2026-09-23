@@ -75,6 +75,11 @@ class AgreementFormViewModel(
             return
         }
 
+        if (normalizedPhone.length !in MIN_PHONE_LENGTH..MAX_PHONE_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Telefone incompleto")
+            return
+        }
+
         if (normalizedName.length > MAX_NAME_LENGTH) {
             _uiState.value = _uiState.value.copy(errorMessage = "Nome do convênio deve ter no máximo $MAX_NAME_LENGTH caracteres")
             return
@@ -182,5 +187,7 @@ class AgreementFormViewModel(
         const val MAX_CITY_LENGTH = 80
         const val MAX_DISCOUNT_CENTS = 9999
         const val MAX_DISCOUNT_DIGITS = 4
+        const val MIN_PHONE_LENGTH = 10
+        const val MAX_PHONE_LENGTH = 11
     }
 }

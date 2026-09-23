@@ -327,7 +327,15 @@ fun MonthlyCustomerFormScreen(
         var dueDayMenuExpanded by remember { mutableStateOf(false) }
 
         val isFormValid = name.isNotBlank() &&
+            (phone.isBlank() || phone.length in ActiveMonthlyCustomersViewModel.MIN_PHONE_LENGTH..ActiveMonthlyCustomersViewModel.MAX_PHONE_LENGTH) &&
             (!isMonthly || (monthlyFee.isNotBlank() && dueDay.isNotBlank()))
+        val phoneError = if (phone.isNotBlank() &&
+            phone.length !in ActiveMonthlyCustomersViewModel.MIN_PHONE_LENGTH..ActiveMonthlyCustomersViewModel.MAX_PHONE_LENGTH
+        ) {
+            "Telefone incompleto"
+        } else {
+            null
+        }
 
         LaunchedEffect(customerId) {
             viewModel.loadCustomerForEdit(customerId)
@@ -417,10 +425,15 @@ fun MonthlyCustomerFormScreen(
                         value = phone,
                         onValueChange = { typed -> phone = typed.onlyPhoneDigits().take(11) },
                         label = { Text("Telefone") },
+                        placeholder = { Text("(00) 00000-0000") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        visualTransformation = PhoneMaskTransformation
+                        visualTransformation = PhoneMaskTransformation,
+                        isError = phoneError != null,
+                        supportingText = {
+                            if (phoneError != null) Text(phoneError, color = MaterialTheme.colorScheme.error)
+                        }
                     )
 
                     OutlinedTextField(

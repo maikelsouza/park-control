@@ -176,7 +176,12 @@ private fun AgreementsFormContent(
 
     val nameError = requiredFieldError(name, showValidation)
     val contactNameError = requiredFieldError(contactName, showValidation)
-    val phoneError = requiredFieldError(contactPhone, showValidation)
+    val phoneError = when {
+        !showValidation -> null
+        contactPhone.isBlank() -> "Campo obrigatório"
+        contactPhone.length !in AgreementFormViewModel.MIN_PHONE_LENGTH..AgreementFormViewModel.MAX_PHONE_LENGTH -> "Telefone incompleto"
+        else -> null
+    }
     val streetError = requiredFieldError(street, showValidation)
     val neighborhoodError = requiredFieldError(neighborhood, showValidation)
     val cityError = requiredFieldError(city, showValidation)
@@ -189,7 +194,7 @@ private fun AgreementsFormContent(
 
     val isFormValid = name.isNotBlank() &&
         contactName.isNotBlank() &&
-        contactPhone.isNotBlank() &&
+        contactPhone.length in AgreementFormViewModel.MIN_PHONE_LENGTH..AgreementFormViewModel.MAX_PHONE_LENGTH &&
         street.isNotBlank() &&
         neighborhood.isNotBlank() &&
         city.isNotBlank() &&

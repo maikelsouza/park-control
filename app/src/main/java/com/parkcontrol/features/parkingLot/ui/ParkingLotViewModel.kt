@@ -134,9 +134,13 @@ class ParkingLotViewModel(
         totalSpots = value.filter { it.isDigit() }.take(MAX_TOTAL_SPOTS_LENGTH)
     }
 
+    fun isPhoneValid(): Boolean {
+        return phone.isBlank() || phone.length in MIN_PHONE_LENGTH..MAX_PHONE_LENGTH
+    }
+
     fun isValid(): Boolean {
         return name.isNotBlank() &&
-            phone.isNotBlank() &&
+            isPhoneValid() &&
             street.isNotBlank() &&
             neighborhood.isNotBlank() &&
             city.isNotBlank() &&
@@ -191,6 +195,8 @@ class ParkingLotViewModel(
         const val MAX_NEIGHBORHOOD_LENGTH = 80
         const val MAX_CITY_LENGTH = 80
         const val MAX_TOTAL_SPOTS_LENGTH = 5
+        const val MIN_PHONE_LENGTH = 10
+        const val MAX_PHONE_LENGTH = 11
     }
 }
 

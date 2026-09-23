@@ -89,6 +89,11 @@ class ActiveMonthlyCustomersViewModel(
         val normalizedEmail = email.trim().lowercase(Locale.ROOT)
         val normalizedSexo = sexo.trim().lowercase(Locale.ROOT).ifBlank { null }
 
+        if (normalizedPhone.isNotBlank() && normalizedPhone.length !in MIN_PHONE_LENGTH..MAX_PHONE_LENGTH) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Telefone incompleto")
+            return
+        }
+
         if (normalizedSexo != null && normalizedSexo !in setOf("masculino", "feminino")) {
             _uiState.value = _uiState.value.copy(errorMessage = "Sexo invalido")
             return
@@ -223,6 +228,8 @@ class ActiveMonthlyCustomersViewModel(
     companion object {
         const val MAX_NAME_LENGTH = 100
         const val MAX_EMAIL_LENGTH = 100
+        const val MIN_PHONE_LENGTH = 10
+        const val MAX_PHONE_LENGTH = 11
     }
 }
 

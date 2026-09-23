@@ -83,6 +83,12 @@ fun ParkingLotEntryScreen(
     val neighborhoodError = requiredFieldError(viewModel.neighborhood, viewModel.showValidation)
     val cityError = requiredFieldError(viewModel.city, viewModel.showValidation)
     val stateError = requiredFieldError(viewModel.state, viewModel.showValidation)
+    val phoneError = when {
+        !viewModel.showValidation -> null
+        viewModel.phone.isBlank() -> null
+        viewModel.phone.length !in ParkingLotViewModel.MIN_PHONE_LENGTH..ParkingLotViewModel.MAX_PHONE_LENGTH -> "Telefone incompleto"
+        else -> null
+    }
     val zipCodeError = when {
         !viewModel.showValidation -> null
         viewModel.zipCode.isBlank() -> "Campo obrigatório"
@@ -142,7 +148,11 @@ fun ParkingLotEntryScreen(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            visualTransformation = PhoneMaskTransformation
+            visualTransformation = PhoneMaskTransformation,
+            isError = phoneError != null,
+            supportingText = {
+                if (phoneError != null) Text(phoneError, color = colorScheme.error)
+            }
         )
 
         OutlinedTextField(
