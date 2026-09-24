@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
+import com.parkcontrol.core.ui.masks.toBrazilianPhoneMask
 import java.text.NumberFormat
 import java.util.Locale
 import androidx.compose.foundation.lazy.LazyColumn
@@ -154,7 +155,7 @@ fun InactiveMonthlyCustomersScreen(
                             }
 
                             if (customer.phone.isNotEmpty()) {
-                                Text("Telefone: ${customer.phone}")
+                                Text("Telefone: ${customer.phone.toBrazilianPhoneMask()}")
                             }
                             if (!customer.sexo.isNullOrBlank()) {
                                 Text("Sexo: ${customer.sexo.toSexoLabel()}")

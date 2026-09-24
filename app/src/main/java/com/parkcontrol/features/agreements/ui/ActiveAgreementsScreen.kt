@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parkcontrol.core.navigation.AppDrawerScaffold
 import com.parkcontrol.core.navigation.AppRoutes
+import com.parkcontrol.core.ui.masks.toBrazilianPhoneMask
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -156,7 +157,7 @@ fun ActiveAgreementsScreen(
                             Text("Responsável: ${agreement.contactName}")
 
                             if (agreement.phone.isNotBlank()) {
-                                Text("Telefone: ${agreement.phone.formatAsPhoneNumber()}")
+                                Text("Telefone: ${agreement.phone.toBrazilianPhoneMask()}")
                             }
 
                             if (agreement.email.isNotBlank()) {
@@ -235,14 +236,4 @@ private fun Int.toCurrency(): String {
     return formatter.format(this / 100.0)
 }
 
-private fun String.formatAsPhoneNumber(): String {
-    val digits = this.filter { it.isDigit() }
-    return when (digits.length) {
-        11 -> "(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}"
-        10 -> "(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}"
-        9 -> "${digits.substring(0, 5)}-${digits.substring(5)}"
-        8 -> "${digits.substring(0, 4)}-${digits.substring(4)}"
-        else -> this
-    }
-}
 
