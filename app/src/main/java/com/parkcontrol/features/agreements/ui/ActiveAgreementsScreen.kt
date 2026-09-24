@@ -156,7 +156,7 @@ fun ActiveAgreementsScreen(
                             Text("Responsável: ${agreement.contactName}")
 
                             if (agreement.phone.isNotBlank()) {
-                                Text("Telefone: ${agreement.phone}")
+                                Text("Telefone: ${agreement.phone.formatAsPhoneNumber()}")
                             }
 
                             if (agreement.email.isNotBlank()) {
@@ -233,5 +233,16 @@ private fun Int.toCurrency(): String {
     val ptBrLocale = Locale.Builder().setLanguage("pt").setRegion("BR").build()
     val formatter = NumberFormat.getCurrencyInstance(ptBrLocale)
     return formatter.format(this / 100.0)
+}
+
+private fun String.formatAsPhoneNumber(): String {
+    val digits = this.filter { it.isDigit() }
+    return when (digits.length) {
+        11 -> "(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}"
+        10 -> "(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}"
+        9 -> "${digits.substring(0, 5)}-${digits.substring(5)}"
+        8 -> "${digits.substring(0, 4)}-${digits.substring(4)}"
+        else -> this
+    }
 }
 
