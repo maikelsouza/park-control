@@ -156,6 +156,9 @@ fun InactiveMonthlyCustomersScreen(
                             if (customer.phone.isNotEmpty()) {
                                 Text("Telefone: ${customer.phone}")
                             }
+                            if (!customer.sexo.isNullOrBlank()) {
+                                Text("Sexo: ${customer.sexo.toSexoLabel()}")
+                            }
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),

@@ -223,6 +223,9 @@ fun ActiveMonthlyCustomersScreen(
                             if (customer.email.isNotEmpty()) {
                                 Text("Email: ${customer.email}")
                             }
+                            if (!customer.sexo.isNullOrBlank()) {
+                                Text("Sexo: ${customer.sexo.toSexoLabel()}")
+                            }
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -670,7 +673,7 @@ private fun Int?.toMoneyDigitsInput(): String {
 
 
 
-private fun String.toSexoLabel(): String {
+internal fun String.toSexoLabel(): String {
     return when (trim().lowercase(Locale.ROOT)) {
         "masculino" -> "Masculino"
         "feminino" -> "Feminino"
