@@ -150,10 +150,18 @@ class ParkingViewModel(
         _selectedRecord.value = record
         _licensePlate.value = record.licensePlate
         _phone.value = record.phone.filter(Char::isDigit).take(11)
+        // Reinicia os campos de convênio/desconto para que o usuário escolha
+        // explicitamente o desconto a aplicar nesta saída.
+        _selectedAgreement.value = null
+        _selectedAgreementValue.value = ""
+        _manualDiscount.value = ""
         refreshOpenRecordSuggestions()
     }
 
     fun selectAgreement(agreement: Agreement) {
+        // Convênio só pode ser aplicado no momento da saída, quando já existe
+        // um registro ESTACIONADO selecionado.
+        if (_selectedRecord.value?.status != ParkingStatus.ESTACIONADO) return
         _selectedAgreement.value = agreement
         _selectedAgreementValue.value = agreement.discountCents.toCurrency()
         // O valor do convênio substitui qualquer desconto digitado manualmente
@@ -161,7 +169,10 @@ class ParkingViewModel(
     }
 
     fun updateManualDiscount(value: String) {
-        // Só é permitido digitar um desconto manual quando nenhum convênio está selecionado
+        // Desconto manual só pode ser digitado no momento da saída, quando já
+        // existe um registro ESTACIONADO selecionado, e nunca junto com um
+        // convênio já selecionado.
+        if (_selectedRecord.value?.status != ParkingStatus.ESTACIONADO) return
         if (_selectedAgreement.value != null) return
         _manualDiscount.value = value.onlyMoneyDigits().take(MAX_DISCOUNT_DIGITS)
     }
@@ -191,22 +202,13 @@ class ParkingViewModel(
                 return@launch
             }
 
-            val agreementDiscount = _selectedAgreement.value
-                ?.discountCents
-                ?.let { it / 100.0 }
-
-            val manualDiscountValue = _manualDiscount.value.moneyDigitsToDoubleOrNull()
-
-            val discountAmount = agreementDiscount ?: manualDiscountValue
-            val isManualDiscount = agreementDiscount == null && manualDiscountValue != null
-
+            // Convênio e desconto manual são aplicados apenas no momento da
+            // saída (ver registerExit), não na entrada do veículo.
             val newRecord = ParkingRecord(
                 licensePlate = normalizedPlate,
                 phone = _phone.value.filter(Char::isDigit).take(11),
                 entryTime = LocalDateTime.now(),
-                status = ParkingStatus.ESTACIONADO,
-                discountAmount = discountAmount,
-                isManualDiscount = isManualDiscount
+                status = ParkingStatus.ESTACIONADO
             )
 
             _selectedRecord.value = newRecord
@@ -234,8 +236,24 @@ class ParkingViewModel(
         val pricePerHour = _pricePerHour.value.toDoubleOrNull()
                 ?: 7.0
 
+        // O convênio/desconto manual selecionado nesta tela é aplicado agora,
+        // no momento da saída, e gravado no registro antes do cálculo final.
+        val agreementDiscount = _selectedAgreement.value
+            ?.discountCents
+            ?.let { it / 100.0 }
+
+        val manualDiscountValue = _manualDiscount.value.moneyDigitsToDoubleOrNull()
+
+        val discountAmount = agreementDiscount ?: manualDiscountValue
+        val isManualDiscount = agreementDiscount == null && manualDiscountValue != null
+
+        val recordWithDiscount = record.copy(
+            discountAmount = discountAmount,
+            isManualDiscount = isManualDiscount
+        )
+
         val updatedRecord = registerParkingExitUseCase(
-            record = record,
+            record = recordWithDiscount,
             exitTime = exitTime,
             first30MinutesPrice = first30MinutesPrice,
             pricePerHour = pricePerHour
@@ -244,6 +262,9 @@ class ParkingViewModel(
 
         viewModelScope.launch {
             updateParkingRecordUseCase(updatedRecord)
+            _selectedAgreement.value = null
+            _selectedAgreementValue.value = ""
+            _manualDiscount.value = ""
             _toastMessage.value = "Saída realizada com sucesso"
         }
     }
@@ -282,6 +303,10 @@ class ParkingViewModel(
         if (match != null) {
             if (_selectedRecord.value?.id != match.id) {
                 _selectedRecord.value = match
+                // Reinicia convênio/desconto ao trocar de registro selecionado.
+                _selectedAgreement.value = null
+                _selectedAgreementValue.value = ""
+                _manualDiscount.value = ""
             }
             // Mantém os dois campos sincronizados com o registro encontrado.
             val matchPhoneDigits = match.phone.filter(Char::isDigit).take(11)

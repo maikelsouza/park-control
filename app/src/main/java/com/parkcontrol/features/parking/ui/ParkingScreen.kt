@@ -166,6 +166,12 @@ private fun VehiclePlateSection(
     val colorScheme = MaterialTheme.colorScheme
     val activeAgreements = viewModel.activeAgreements.value
     val selectedAgreement = viewModel.selectedAgreement.value
+    // Convênio e desconto manual só podem ser preenchidos no momento da saída
+    // do veículo, ou seja, quando já existe um registro ESTACIONADO
+    // selecionado (prestes a ter a saída registrada). Na entrada, esses
+    // campos ficam desabilitados.
+    val selectedRecord = viewModel.selectedRecord.value
+    val canEditDiscount = selectedRecord?.status == ParkingStatus.ESTACIONADO
     var agreementExpanded by remember { mutableStateOf(false) }
     var plateType by remember { mutableStateOf(PlateType.MERCOSUL) }
     var plateFieldValue by remember {
@@ -263,8 +269,17 @@ private fun VehiclePlateSection(
             value = selectedAgreement?.name.orEmpty(),
             onValueChange = {},
             readOnly = true,
+            enabled = canEditDiscount,
             label = { Text("Convênio") },
-            placeholder = { Text(if (activeAgreements.isEmpty()) "Nenhum convênio ativo" else "Selecione um convênio") },
+            placeholder = {
+                Text(
+                    when {
+                        !canEditDiscount -> "Disponível somente ao dar saída do veículo"
+                        activeAgreements.isEmpty() -> "Nenhum convênio ativo"
+                        else -> "Selecione um convênio"
+                    }
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth(),
             singleLine = true,
@@ -274,7 +289,7 @@ private fun VehiclePlateSection(
             modifier = Modifier
                 .matchParentSize()
                 .clickable(
-                    enabled = activeAgreements.isNotEmpty(),
+                    enabled = canEditDiscount && activeAgreements.isNotEmpty(),
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = { agreementExpanded = !agreementExpanded }
@@ -300,10 +315,10 @@ private fun VehiclePlateSection(
     }
 
     Text(
-        text = if (activeAgreements.isEmpty()) {
-            "Nenhum convênio ativo encontrado"
-        } else {
-            "Convênios ativos: ${activeAgreements.size}"
+        text = when {
+            !canEditDiscount -> "Convênio e desconto só podem ser informados no momento da saída do veículo"
+            activeAgreements.isEmpty() -> "Nenhum convênio ativo encontrado"
+            else -> "Convênios ativos: ${activeAgreements.size}"
         },
         fontSize = 12.sp,
         color = colorScheme.onSurfaceVariant,
@@ -321,7 +336,7 @@ private fun VehiclePlateSection(
         label = { Text("Valor do convênio") },
         placeholder = { Text("Selecione um convênio") },
         readOnly = true,
-        enabled = hasSelectedAgreement,
+        enabled = hasSelectedAgreement && canEditDiscount,
         singleLine = true,
         shape = RoundedCornerShape(8.dp),
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
@@ -336,7 +351,7 @@ private fun VehiclePlateSection(
         onValueChange = viewModel::updateManualDiscount,
         label = { Text("Valor do desconto") },
         placeholder = { Text("Digite um valor de desconto") },
-        enabled = !hasSelectedAgreement,
+        enabled = canEditDiscount && !hasSelectedAgreement,
         singleLine = true,
         shape = RoundedCornerShape(8.dp),
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
@@ -344,10 +359,10 @@ private fun VehiclePlateSection(
         visualTransformation = CurrencyMaskTransformation,
         supportingText = {
             Text(
-                text = if (hasSelectedAgreement) {
-                    "Desabilitado enquanto um convênio estiver selecionado"
-                } else {
-                    "Informe o valor de desconto manual (sem convênio). Valor máximo: R$ 99,99"
+                text = when {
+                    !canEditDiscount -> "Disponível somente ao dar saída do veículo"
+                    hasSelectedAgreement -> "Desabilitado enquanto um convênio estiver selecionado"
+                    else -> "Informe o valor de desconto manual (sem convênio). Valor máximo: R$ 99,99"
                 },
                 fontSize = 11.sp
             )
