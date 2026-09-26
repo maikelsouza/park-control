@@ -27,13 +27,21 @@ class RegisterParkingExitUseCase(
             pricePerHour = pricePerHour
         )
 
-        val discountAmount = record.discountAmount ?: 0.0
-        val finalAmount = (amountPaid - discountAmount).coerceAtLeast(0.0)
+        // O desconto nunca pode ultrapassar o valor bruto calculado do
+        // estacionamento: se o usuário informar/selecionar um desconto maior
+        // que o valor calculado (ex.: calculado R$ 5,00 com desconto de
+        // R$ 6,00), o desconto efetivamente aplicado e gravado é limitado a
+        // R$ 5,00. Isso evita que o valor bruto reconstruído (valor pago +
+        // desconto) fique inflado além do que foi realmente calculado.
+        val requestedDiscount = record.discountAmount ?: 0.0
+        val appliedDiscount = requestedDiscount.coerceIn(0.0, amountPaid)
+        val finalAmount = (amountPaid - appliedDiscount).coerceAtLeast(0.0)
 
         return record.copy(
             exitTime = exitTime,
             status = ParkingStatus.FINALIZADO,
-            amountPaid = finalAmount
+            amountPaid = finalAmount,
+            discountAmount = appliedDiscount
         )
     }
 }
