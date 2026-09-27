@@ -22,12 +22,9 @@ class CalculateParkingPriceUseCase {
             minutes <= 30 -> first30MinutesPrice
 
             else -> {
-                val extraMinutes = minutes - 30
-                val extraHours =
-                    ceil(extraMinutes / 60.0)
+                val totalHours = ceil(minutes / 60.0)
 
-                first30MinutesPrice +
-                        (extraHours * pricePerHour)
+                totalHours * pricePerHour
             }
         }
     }
