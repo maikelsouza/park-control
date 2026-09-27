@@ -39,7 +39,7 @@ class InactiveMonthlyCustomersViewModel(
             try {
                 activateMonthlyCustomerUseCase(customerId)
                 _uiState.value = _uiState.value.copy(successMessage = "Cliente ativado com sucesso")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = "Erro ao ativar cliente")
             }
         }
