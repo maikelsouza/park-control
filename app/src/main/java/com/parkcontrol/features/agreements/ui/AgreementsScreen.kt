@@ -208,20 +208,19 @@ private fun AgreementsFormContent(
     }
 
     LaunchedEffect(selectedAgreement, agreementId) {
-        val agreement = selectedAgreement
-        if (agreementId != null && agreement != null && !didPrefill) {
-            name = agreement.name
-            contactName = agreement.contactName
-            contactPhone = agreement.phone.onlyPhoneDigits().take(11)
-            contactEmail = agreement.email
-            street = agreement.street
-            number = agreement.number
-            complement = agreement.complement
-            neighborhood = agreement.neighborhood
-            city = agreement.city
-            state = agreement.state
-            zipCode = agreement.zipCode.onlyZipCodeDigits().take(8)
-            discountValue = agreement.discountCents.toString()
+        if (agreementId != null && selectedAgreement != null && !didPrefill) {
+            name = selectedAgreement.name
+            contactName = selectedAgreement.contactName
+            contactPhone = selectedAgreement.phone.onlyPhoneDigits().take(11)
+            contactEmail = selectedAgreement.email
+            street = selectedAgreement.street
+            number = selectedAgreement.number
+            complement = selectedAgreement.complement
+            neighborhood = selectedAgreement.neighborhood
+            city = selectedAgreement.city
+            state = selectedAgreement.state
+            zipCode = selectedAgreement.zipCode.onlyZipCodeDigits().take(8)
+            discountValue = selectedAgreement.discountCents.toString()
             didPrefill = true
         }
     }
