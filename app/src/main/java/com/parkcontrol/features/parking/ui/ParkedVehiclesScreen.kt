@@ -515,7 +515,7 @@ private fun ParkedVehicleCard(record: ParkingRecord) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = formatDuration(record.entryTime),
+                    text = formatDuration(record.entryTime, record.exitTime, record.status),
                     color = colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -524,8 +524,20 @@ private fun ParkedVehicleCard(record: ParkingRecord) {
     }
 }
 
-private fun formatDuration(entryTime: LocalDateTime): String {
-    val duration = Duration.between(entryTime, LocalDateTime.now())
+private fun formatDuration(
+    entryTime: LocalDateTime,
+    exitTime: LocalDateTime?,
+    status: ParkingStatus
+): String {
+    // Enquanto o status for FINALIZADO, o tempo estacionado não deve mais
+    // avançar: usa-se o horário de saída como referência final. Só quando o
+    // veículo ainda está ESTACIONADO é que o tempo continua contando até agora.
+    val referenceEnd = if (status == ParkingStatus.FINALIZADO) {
+        exitTime ?: LocalDateTime.now()
+    } else {
+        LocalDateTime.now()
+    }
+    val duration = Duration.between(entryTime, referenceEnd)
     val totalMinutes = duration.toMinutes().coerceAtLeast(0)
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
