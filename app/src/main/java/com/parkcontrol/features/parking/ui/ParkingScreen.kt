@@ -123,6 +123,7 @@ fun ParkingEntryScreen(
     qrCodeRecord?.let { record ->
         TicketQrCodeDialog(
             record = record,
+            parkingLotInfo = viewModel.parkingLotInfo.value,
             onDismiss = viewModel::onDismissQrCodeDialog
         )
     }

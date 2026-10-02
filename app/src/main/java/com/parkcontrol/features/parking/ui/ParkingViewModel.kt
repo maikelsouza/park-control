@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.parkcontrol.core.di.CoreDependencies
+import com.parkcontrol.core.domain.model.ParkingLotInfo
 import com.parkcontrol.core.ui.masks.moneyDigitsToDoubleOrNull
 import com.parkcontrol.core.ui.masks.onlyMoneyDigits
 import com.parkcontrol.features.agreements.domain.model.Agreement
@@ -52,6 +53,10 @@ class ParkingViewModel(
         CoreDependencies.createCheckVehicleActiveParkingUseCase(application)
     }
 
+    private val getParkingLotInfoUseCase by lazy {
+        CoreDependencies.createGetParkingLotInfoUseCase(application)
+    }
+
     // Initialize state variables before init block
     private val _licensePlate = mutableStateOf("")
     val licensePlate: State<String> = _licensePlate
@@ -94,6 +99,11 @@ class ParkingViewModel(
     private val _qrCodeRecord = mutableStateOf<ParkingRecord?>(null)
     val qrCodeRecord: State<ParkingRecord?> = _qrCodeRecord
 
+    // Dados do estacionamento (nome/telefone) cadastrados na tela de
+    // configuração, usados para enriquecer o ticket digital do QR-code.
+    private val _parkingLotInfo = mutableStateOf(ParkingLotInfo())
+    val parkingLotInfo: State<ParkingLotInfo> = _parkingLotInfo
+
     fun onToastMessageShown() {
         _toastMessage.value = null
     }
@@ -129,6 +139,12 @@ class ParkingViewModel(
             getActiveAgreementsUseCase().collect { agreements ->
                 _activeAgreements.value = agreements
                 syncSelectedAgreement(agreements)
+            }
+        }
+
+        viewModelScope.launch {
+            getParkingLotInfoUseCase().collect { info ->
+                _parkingLotInfo.value = info
             }
         }
     }

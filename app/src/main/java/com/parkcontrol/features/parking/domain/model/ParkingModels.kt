@@ -48,14 +48,41 @@ fun Long.formatAsTicketNumber(): String {
  * QR-code do cliente decodifica e exibe o texto diretamente na tela, sem
  * precisar de internet nem de nenhum app específico instalado. O cliente pode
  * copiar o texto ou tirar um print para guardar o ticket no celular.
+ *
+ * Quando o estacionamento tiver nome e/ou telefone cadastrados (tela de
+ * configuração do estacionamento), esses dados são incluídos no início do
+ * ticket para identificar o local e permitir contato.
  */
-fun ParkingRecord.toTicketMessage(): String {
+fun ParkingRecord.toTicketMessage(
+    parkingLotName: String = "",
+    parkingLotPhone: String = ""
+): String {
     return buildString {
         appendLine("🚗 Ticket de Estacionamento")
+        if (parkingLotName.isNotBlank()) {
+            appendLine(parkingLotName.trim())
+        }
+        if (parkingLotPhone.isNotBlank()) {
+            appendLine("Tel: ${parkingLotPhone.formatPhoneForDisplay()}")
+        }
         appendLine()
         appendLine("Placa: $licensePlate")
         appendLine("Entrada: ${entryTime.formatToTicketDisplay()}")
         append("Ticket: ${ticketNumber.formatAsTicketNumber()}")
+    }
+}
+
+/**
+ * Formata um telefone contendo apenas dígitos no padrão brasileiro
+ * (00) 00000-0000 ou (00) 0000-0000, para exibição no ticket digital.
+ * Caso não se encaixe nos formatos esperados, retorna o valor original.
+ */
+fun String.formatPhoneForDisplay(): String {
+    val digits = filter(Char::isDigit)
+    return when (digits.length) {
+        11 -> "(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}"
+        10 -> "(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}"
+        else -> this
     }
 }
 

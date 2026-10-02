@@ -18,9 +18,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.parkcontrol.core.domain.model.ParkingLotInfo
 import com.parkcontrol.core.utils.QrCodeGenerator
 import com.parkcontrol.features.parking.domain.model.ParkingRecord
 import com.parkcontrol.features.parking.domain.model.formatAsTicketNumber
+import com.parkcontrol.features.parking.domain.model.formatPhoneForDisplay
 import com.parkcontrol.features.parking.domain.model.formatToTicketDisplay
 import com.parkcontrol.features.parking.domain.model.toTicketMessage
 
@@ -32,14 +34,21 @@ import com.parkcontrol.features.parking.domain.model.toTicketMessage
  * 100% offline, sem depender de internet, de servidor externo ou de qualquer
  * app específico instalado. O cliente pode copiar o texto ou tirar um print
  * da tela para guardar o ticket no próprio celular.
+ *
+ * Quando o estacionamento tiver nome e/ou telefone cadastrados, esses dados
+ * são exibidos no dialog e também incluídos no conteúdo do QR-code.
  */
 @Composable
 fun TicketQrCodeDialog(
     record: ParkingRecord,
+    parkingLotInfo: ParkingLotInfo = ParkingLotInfo(),
     onDismiss: () -> Unit
 ) {
-    val ticketMessage = remember(record.id, record.ticketNumber) {
-        record.toTicketMessage()
+    val ticketMessage = remember(record.id, record.ticketNumber, parkingLotInfo) {
+        record.toTicketMessage(
+            parkingLotName = parkingLotInfo.name,
+            parkingLotPhone = parkingLotInfo.phone
+        )
     }
     val qrBitmap = remember(ticketMessage) {
         QrCodeGenerator.generate(ticketMessage)
@@ -81,6 +90,20 @@ fun TicketQrCodeDialog(
                 )
 
                 HorizontalDivider()
+
+                if (parkingLotInfo.name.isNotBlank() || parkingLotInfo.phone.isNotBlank()) {
+                    if (parkingLotInfo.name.isNotBlank()) {
+                        Text(
+                            text = parkingLotInfo.name,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    if (parkingLotInfo.phone.isNotBlank()) {
+                        Text(text = "Tel: ${parkingLotInfo.phone.formatPhoneForDisplay()}")
+                    }
+                    HorizontalDivider()
+                }
 
                 Text(
                     text = "Ticket ${record.ticketNumber.formatAsTicketNumber()}",
