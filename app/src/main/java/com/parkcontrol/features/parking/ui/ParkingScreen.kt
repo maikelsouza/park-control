@@ -3,7 +3,6 @@ package com.parkcontrol.features.parking.ui
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilterChip
@@ -71,7 +68,6 @@ private val SuccessGreen = Color(0xFF28A745)
 private const val PLATE_ALPHANUMERIC_LENGTH = 7
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParkingScreen(
     onNavigate: (String) -> Unit
@@ -164,7 +160,6 @@ fun ParkingEntryScreen(
 private fun VehiclePlateSection(
     viewModel: ParkingViewModel
 ) {
-    val colorScheme = MaterialTheme.colorScheme
     val activeAgreements = viewModel.activeAgreements.value
     val selectedAgreement = viewModel.selectedAgreement.value
     // Convênio e desconto manual só podem ser preenchidos no momento da saída
@@ -206,7 +201,7 @@ private fun VehiclePlateSection(
                     plateType = type
                     viewModel.updateLicensePlate("")
                 },
-                label = { Text(type.displayName) }
+                label = { Text(type.displayName, fontSize = 12.sp) }
             )
         }
     }
@@ -245,7 +240,7 @@ private fun VehiclePlateSection(
     )
 
 
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(8.dp))
 
     OutlinedTextField(
         value = viewModel.phone.value,
@@ -263,7 +258,7 @@ private fun VehiclePlateSection(
             .height(70.dp)
     )
 
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(8.dp))
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -315,19 +310,7 @@ private fun VehiclePlateSection(
         }
     }
 
-    Text(
-        text = when {
-            !canEditDiscount -> "Convênio e desconto só podem ser informados no momento da saída do veículo"
-            activeAgreements.isEmpty() -> "Nenhum convênio ativo encontrado"
-            else -> "Convênios ativos: ${activeAgreements.size}"
-        },
-        fontSize = 12.sp,
-        color = colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Start,
-        modifier = Modifier.fillMaxWidth()
-    )
-
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(8.dp))
 
     val hasSelectedAgreement = selectedAgreement != null
 
@@ -345,7 +328,7 @@ private fun VehiclePlateSection(
             .fillMaxWidth()
     )
 
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(8.dp))
 
     OutlinedTextField(
         value = viewModel.manualDiscount.value,
@@ -358,90 +341,9 @@ private fun VehiclePlateSection(
         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         visualTransformation = CurrencyMaskTransformation,
-        supportingText = {
-            Text(
-                text = when {
-                    !canEditDiscount -> "Disponível somente ao dar saída do veículo"
-                    hasSelectedAgreement -> "Desabilitado enquanto um convênio estiver selecionado"
-                    else -> "Informe o valor de desconto manual (sem convênio). Valor máximo: R$ 99,99"
-                },
-                fontSize = 11.sp
-            )
-        },
         modifier = Modifier
             .fillMaxWidth()
     )
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .border(
-                width = 3.dp,
-                color = colorScheme.primary,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .background(
-                color = colorScheme.surface,
-                shape = RoundedCornerShape(8.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .width(50.dp)
-                        .height(40.dp)
-                        .background(
-                            colorScheme.primary,
-                            RoundedCornerShape(4.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🇧🇷", fontSize = 24.sp)
-                }
-
-                Text(
-                    text = viewModel.licensePlate.value,
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = colorScheme.onSurface,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "BR",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .background(
-                        colorScheme.surfaceVariant,
-                        RoundedCornerShape(2.dp)
-                    )
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-            )
-        }
-    }
 }
 
 @Composable
