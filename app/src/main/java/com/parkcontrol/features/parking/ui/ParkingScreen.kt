@@ -261,8 +261,13 @@ private fun VehiclePlateSection(
     Spacer(modifier = Modifier.height(8.dp))
 
     Box(modifier = Modifier.fillMaxWidth()) {
+        val selectedAgreementDisplayValue = selectedAgreement?.let { agreement ->
+            val value = viewModel.selectedAgreementValue.value
+            if (value.isNotBlank()) "${agreement.name} - $value" else agreement.name
+        }.orEmpty()
+
         OutlinedTextField(
-            value = selectedAgreement?.name.orEmpty(),
+            value = selectedAgreementDisplayValue,
             onValueChange = {},
             readOnly = true,
             enabled = canEditDiscount,
@@ -314,21 +319,6 @@ private fun VehiclePlateSection(
 
     val hasSelectedAgreement = selectedAgreement != null
 
-    OutlinedTextField(
-        value = viewModel.selectedAgreementValue.value,
-        onValueChange = {},
-        label = { Text("Valor do convênio") },
-        placeholder = { Text("Selecione um convênio") },
-        readOnly = true,
-        enabled = hasSelectedAgreement && canEditDiscount,
-        singleLine = true,
-        shape = RoundedCornerShape(8.dp),
-        textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
-        modifier = Modifier
-            .fillMaxWidth()
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
 
     OutlinedTextField(
         value = viewModel.manualDiscount.value,
