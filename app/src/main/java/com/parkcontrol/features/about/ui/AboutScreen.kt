@@ -33,7 +33,8 @@ fun AboutScreen(
     ) { paddingValues ->
         val colorScheme = MaterialTheme.colorScheme
         val context = LocalContext.current
-        val contactEmail = "maikel.souza@gmail.com"
+        val contactEmail = "parkcontrol.sistema@gmail.com"
+        val privacyPolicyUrl = "https://maikelsouza.github.io/park-control/privacy-policy.html"
 
         Box(
             modifier = Modifier
@@ -72,6 +73,18 @@ fun AboutScreen(
                             val intent = Intent(Intent.ACTION_SENDTO).apply {
                                 data = "mailto:$contactEmail".toUri()
                             }
+                            context.startActivity(intent)
+                        }
+                )
+
+                Text(
+                    text = "Política de Privacidade",
+                    color = colorScheme.primary,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_VIEW, privacyPolicyUrl.toUri())
                             context.startActivity(intent)
                         }
                 )
