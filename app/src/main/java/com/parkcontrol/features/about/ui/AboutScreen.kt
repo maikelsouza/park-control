@@ -34,7 +34,7 @@ fun AboutScreen(
         val colorScheme = MaterialTheme.colorScheme
         val context = LocalContext.current
         val contactEmail = "parkcontrol.sistema@gmail.com"
-        val privacyPolicyUrl = "https://maikelsouza.github.io/park-control/privacy-policy.html"
+        val privacyPolicyUrl = "https://www.parkcontrol.com.br/privacy-policy"
 
         Box(
             modifier = Modifier
@@ -57,14 +57,14 @@ fun AboutScreen(
                 )
 
                 Text(
-                    text = "Versão ${BuildConfig.VERSION_NAME}",
+                    text = "Versão ${BuildConfig.VERSION_NAME} - Beta",
                     color = colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 24.dp)
                 )
 
                 Text(
-                    text = "contato: $contactEmail",
+                    text = contactEmail,
                     color = colorScheme.primary,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier
