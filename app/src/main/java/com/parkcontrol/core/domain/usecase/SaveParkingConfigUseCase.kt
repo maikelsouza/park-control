@@ -25,5 +25,9 @@ class SaveParkingConfigUseCase(
     suspend fun saveToleranceMinutes(minutes: Int) {
         repository.saveToleranceMinutes(minutes)
     }
+
+    suspend fun savePixKey(pixKey: String) {
+        repository.savePixKey(pixKey)
+    }
 }
 

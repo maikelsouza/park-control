@@ -7,6 +7,7 @@ package com.parkcontrol.core.domain.model
 data class ParkingConfig(
     val first30MinutesPrice: Double = 5.00,
     val pricePerHour: Double = 7.00,
-    val toleranceMinutes: Int = 15
+    val toleranceMinutes: Int = 15,
+    val pixKey: String = ""
 )
 

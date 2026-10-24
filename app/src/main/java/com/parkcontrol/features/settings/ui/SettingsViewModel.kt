@@ -31,6 +31,9 @@ class SettingsViewModel(
     var hourlyRate by mutableStateOf("700")
         private set
 
+    var pixKey by mutableStateOf("")
+        private set
+
     init {
         // collect stored settings and update UI state
         viewModelScope.launch {
@@ -38,6 +41,7 @@ class SettingsViewModel(
                 // format as digits representing cents, e.g. 5.00 -> "500"
                 first30Minutes = config.first30MinutesPrice.toCentsDigits()
                 hourlyRate = config.pricePerHour.toCentsDigits()
+                pixKey = config.pixKey
             }
         }
     }
@@ -48,6 +52,10 @@ class SettingsViewModel(
 
     fun onHourlyRateChange(value: String) {
         hourlyRate = value.filter(Char::isDigit).take(11)
+    }
+
+    fun onPixKeyChange(value: String) {
+        pixKey = value
     }
 
     fun saveSettings() {
@@ -65,7 +73,8 @@ class SettingsViewModel(
                 val config = ParkingConfig(
                     first30MinutesPrice = safeFirst30,
                     pricePerHour = safeHourly,
-                    toleranceMinutes = safeTolerance
+                    toleranceMinutes = safeTolerance,
+                    pixKey = pixKey
                 )
                 saveParkingConfigUseCase(config)
             }

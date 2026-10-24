@@ -107,6 +107,7 @@ fun ParkingEntryScreen(
     val suggestions = viewModel.openRecordSuggestions.value
     val toastMessage = viewModel.toastMessage.value
     val qrCodeRecord = viewModel.qrCodeRecord.value
+    val pixQrCodeRecord = viewModel.pixQrCodeRecord.value
     val context = LocalContext.current
 
     LaunchedEffect(toastMessage) {
@@ -121,6 +122,15 @@ fun ParkingEntryScreen(
             record = record,
             parkingLotInfo = viewModel.parkingLotInfo.value,
             onDismiss = viewModel::onDismissQrCodeDialog
+        )
+    }
+
+    pixQrCodeRecord?.let { record ->
+        PixQrCodeDialog(
+            record = record,
+            pixKey = viewModel.pixKey.value,
+            parkingLotInfo = viewModel.parkingLotInfo.value,
+            onDismiss = viewModel::onDismissPixQrCodeDialog
         )
     }
 
@@ -403,6 +413,28 @@ private fun ActionButtonsSection(
             "🎫 GERAR QR-CODE DO TICKET",
             fontWeight = FontWeight.Bold,
             color = colorScheme.onTertiary
+        )
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Button(
+        onClick = viewModel::onGeneratePixQrCodeClick,
+        enabled = selectedRecord?.status == ParkingStatus.FINALIZADO &&
+            selectedRecord.amountPaid != null &&
+            viewModel.pixKey.value.isNotBlank(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = SuccessGreen
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            "💰 GERAR QR-CODE PIX",
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
     }
 }

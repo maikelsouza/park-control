@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.parkcontrol.core.datastore.settingsPreferencesDataStore
 import com.parkcontrol.core.datastore.settingsPreferencesFlow
 import com.parkcontrol.core.domain.model.ParkingConfig
@@ -28,11 +29,14 @@ class ParkingConfigRepositoryImpl(
                 ?: ParkingConfigDataStoreKeys.DEFAULT_HOURLY_RATE
             val tolerance = prefs[ParkingConfigDataStoreKeys.TOLERANCE_MINUTES]
                 ?: ParkingConfigDataStoreKeys.DEFAULT_TOLERANCE_MINUTES
+            val pixKey = prefs[ParkingConfigDataStoreKeys.PIX_KEY]
+                ?: ParkingConfigDataStoreKeys.DEFAULT_PIX_KEY
 
             ParkingConfig(
                 first30MinutesPrice = first30,
                 pricePerHour = hourly,
-                toleranceMinutes = tolerance
+                toleranceMinutes = tolerance,
+                pixKey = pixKey
             )
         }
     }
@@ -42,6 +46,7 @@ class ParkingConfigRepositoryImpl(
             prefs[ParkingConfigDataStoreKeys.FIRST30_PRICE] = config.first30MinutesPrice
             prefs[ParkingConfigDataStoreKeys.HOURLY_RATE] = config.pricePerHour
             prefs[ParkingConfigDataStoreKeys.TOLERANCE_MINUTES] = config.toleranceMinutes
+            prefs[ParkingConfigDataStoreKeys.PIX_KEY] = config.pixKey
         }
     }
 
@@ -62,6 +67,12 @@ class ParkingConfigRepositoryImpl(
             prefs[ParkingConfigDataStoreKeys.TOLERANCE_MINUTES] = minutes
         }
     }
+
+    override suspend fun savePixKey(pixKey: String) {
+        context.settingsPreferencesDataStore.edit { prefs ->
+            prefs[ParkingConfigDataStoreKeys.PIX_KEY] = pixKey
+        }
+    }
 }
 
 /**
@@ -72,10 +83,12 @@ object ParkingConfigDataStoreKeys {
     const val DEFAULT_FIRST30_PRICE = 5.00
     const val DEFAULT_HOURLY_RATE = 7.00
     const val DEFAULT_TOLERANCE_MINUTES = 15
+    const val DEFAULT_PIX_KEY = ""
 
     val FIRST30_PRICE = doublePreferencesKey("first30_price")
     val HOURLY_RATE = doublePreferencesKey("hourly_rate")
     val TOLERANCE_MINUTES = intPreferencesKey("tolerance_minutes")
+    val PIX_KEY = stringPreferencesKey("pix_key")
 }
 
 

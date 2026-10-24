@@ -35,5 +35,10 @@ interface ParkingConfigRepository {
      * Save only the tolerance minutes.
      */
     suspend fun saveToleranceMinutes(minutes: Int)
+
+    /**
+     * Save only the PIX key (optional field).
+     */
+    suspend fun savePixKey(pixKey: String)
 }
 

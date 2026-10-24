@@ -169,6 +169,46 @@ fun SettingsEntryScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Card Chave Pix (opcional)
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+
+                Text(
+                    text = "Chave Pix",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Campo opcional para recebimento via Pix.",
+                    color = colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = viewModel.pixKey,
+                    onValueChange = {
+                        viewModel.onPixKeyChange(it)
+                    },
+                    label = { Text("Chave Pix (opcional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Resumo
         Card(
             colors = CardDefaults.cardColors(

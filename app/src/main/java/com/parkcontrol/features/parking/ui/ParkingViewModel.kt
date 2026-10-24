@@ -91,6 +91,12 @@ class ParkingViewModel(
 
     private val _pricePerHour = mutableStateOf("7.00")
 
+    // Chave Pix cadastrada nas configurações, usada para gerar o QR-code de
+    // pagamento após a saída do veículo. Campo opcional: quando em branco,
+    // o botão de gerar QR-code Pix fica desabilitado.
+    private val _pixKey = mutableStateOf("")
+    val pixKey: State<String> = _pixKey
+
     private val _toastMessage = mutableStateOf<String?>(null)
     val toastMessage: State<String?> = _toastMessage
 
@@ -98,6 +104,11 @@ class ParkingViewModel(
     // Null quando o dialog está fechado.
     private val _qrCodeRecord = mutableStateOf<ParkingRecord?>(null)
     val qrCodeRecord: State<ParkingRecord?> = _qrCodeRecord
+
+    // Registro cujo QR-code de pagamento Pix está sendo exibido no dialog.
+    // Null quando o dialog está fechado.
+    private val _pixQrCodeRecord = mutableStateOf<ParkingRecord?>(null)
+    val pixQrCodeRecord: State<ParkingRecord?> = _pixQrCodeRecord
 
     // Dados do estacionamento (nome/telefone) cadastrados na tela de
     // configuração, usados para enriquecer o ticket digital do QR-code.
@@ -116,12 +127,21 @@ class ParkingViewModel(
         _qrCodeRecord.value = null
     }
 
+    fun onGeneratePixQrCodeClick() {
+        _pixQrCodeRecord.value = _selectedRecord.value
+    }
+
+    fun onDismissPixQrCodeDialog() {
+        _pixQrCodeRecord.value = null
+    }
+
     init {
         // load persisted parking config and keep UI state in sync
         viewModelScope.launch {
             getParkingConfigUseCase().collect { config ->
                 _first30MinutesPrice.value = String.format(Locale.US, "%.2f", config.first30MinutesPrice)
                 _pricePerHour.value = String.format(Locale.US, "%.2f", config.pricePerHour)
+                _pixKey.value = config.pixKey
             }
         }
 
@@ -130,6 +150,7 @@ class ParkingViewModel(
                 _parkingRecords.value = records
                 syncSelectedRecord(records)
                 syncQrCodeRecord(records)
+                syncPixQrCodeRecord(records)
                 refreshOpenRecordSuggestions()
                 autoSelectExactMatch()
             }
@@ -382,6 +403,11 @@ class ParkingViewModel(
     private fun syncQrCodeRecord(records: List<ParkingRecord>) {
         val qrRecordId = _qrCodeRecord.value?.id ?: return
         _qrCodeRecord.value = records.firstOrNull { it.id == qrRecordId }
+    }
+
+    private fun syncPixQrCodeRecord(records: List<ParkingRecord>) {
+        val pixQrRecordId = _pixQrCodeRecord.value?.id ?: return
+        _pixQrCodeRecord.value = records.firstOrNull { it.id == pixQrRecordId }
     }
 
     private fun syncSelectedAgreement(agreements: List<Agreement>) {
