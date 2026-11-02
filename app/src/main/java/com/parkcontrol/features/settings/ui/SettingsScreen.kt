@@ -37,7 +37,8 @@ import com.parkcontrol.core.ui.masks.toBrazilianCurrencyMask
 
 @Composable
 fun SettingsScreen(
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    onSaved: (String) -> Unit = {}
 ) {
 
     AppDrawerScaffold(
@@ -49,7 +50,7 @@ fun SettingsScreen(
         SettingsEntryScreen(
             viewModel = viewModel,
             modifier = Modifier.padding(paddingValues),
-            onNavigate = onNavigate
+            onSaved = onSaved
         )
     }
 }
@@ -58,7 +59,7 @@ fun SettingsScreen(
 fun SettingsEntryScreen(
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    onNavigate: (String) -> Unit = {}
+    onSaved: (String) -> Unit = {}
 ) {
 
     val colorScheme = MaterialTheme.colorScheme
@@ -254,7 +255,7 @@ fun SettingsEntryScreen(
         Button(
             onClick = {
                 viewModel.saveSettings()
-                onNavigate("home")
+                onSaved("Configurações atualizadas com sucesso")
             },
             modifier = Modifier
                 .fillMaxWidth()

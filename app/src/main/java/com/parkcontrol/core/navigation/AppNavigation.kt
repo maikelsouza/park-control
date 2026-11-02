@@ -215,7 +215,12 @@ fun AppNavigation(
 
         composable(AppRoutes.Settings.route) {
             SettingsScreen(
-                onNavigate = navigateFromDrawer
+                onNavigate = navigateFromDrawer,
+                onSaved = { message ->
+                    navController.getBackStackEntry(AppRoutes.Home.route)
+                        .savedStateHandle[HOME_SAVE_RESULT_KEY] = message
+                    navigateFromDrawer(AppRoutes.Home.route)
+                }
             )
 
         }
