@@ -4,7 +4,7 @@ Todas as alterações relevantes do Park Control serão documentadas neste arqui
 
 ## [Não lançado]
 
-## [1.2.0] - 2026-11-02
+## [1.1.1] - 02-11-2026
 
 ### Adicionado
 - Validação obrigatória dos campos **Preço** e **Valor da hora** na tela de
@@ -20,7 +20,7 @@ Todas as alterações relevantes do Park Control serão documentadas neste arqui
   estacionamento, home e sobre, navegação e fluxo de pagamento Pix) e
   corrigida a formatação da tabela de Clean Architecture Grid.
 
-## [1.1.1]
+## [1.1.0] - 24-10-2026
 
 ### Adicionado
 - Campo opcional **Chave Pix** na tela de Configurações, permitindo cadastrar
