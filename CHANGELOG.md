@@ -4,6 +4,24 @@ Todas as alterações relevantes do Park Control serão documentadas neste arqui
 
 ## [Não lançado]
 
+## [1.2.0] - 2026-11-02
+
+### Adicionado
+- Validação obrigatória dos campos **Preço** e **Valor da hora** na tela de
+  Configurações, impedindo o salvamento de valores vazios ou inválidos.
+- Snackbar de sucesso exibida ao salvar as configurações de estacionamento.
+
+### Corrigido
+- Suprimido aviso falso-positivo de dependência duplicada do `composeBom`.
+
+### Documentação
+- Atualizado `REFACTORING_ARCHITECTURE.md` para refletir o estado atual do
+  código (persistência com Room, features de convênios, mensalistas,
+  estacionamento, home e sobre, navegação e fluxo de pagamento Pix) e
+  corrigida a formatação da tabela de Clean Architecture Grid.
+
+## [1.1.1]
+
 ### Adicionado
 - Campo opcional **Chave Pix** na tela de Configurações, permitindo cadastrar
   a chave usada para recebimento via Pix.
