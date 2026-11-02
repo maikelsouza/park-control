@@ -40,6 +40,7 @@ android {
 
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
+    //noinspection GradleDependency
     implementation(composeBom)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
