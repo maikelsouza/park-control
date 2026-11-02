@@ -11,6 +11,7 @@ import com.parkcontrol.core.domain.model.ParkingConfig
 import com.parkcontrol.core.domain.usecase.GetParkingConfigUseCase
 import com.parkcontrol.core.domain.usecase.SaveParkingConfigUseCase
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 class SettingsViewModel(
     private val getParkingConfigUseCase: GetParkingConfigUseCase,
@@ -34,6 +35,12 @@ class SettingsViewModel(
     var pixKey by mutableStateOf("")
         private set
 
+    var first30MinutesError by mutableStateOf<String?>(null)
+        private set
+
+    var hourlyRateError by mutableStateOf<String?>(null)
+        private set
+
     init {
         // collect stored settings and update UI state
         viewModelScope.launch {
@@ -48,10 +55,12 @@ class SettingsViewModel(
 
     fun onFirst30MinutesChange(value: String) {
         first30Minutes = value.filter(Char::isDigit).take(11)
+        first30MinutesError = null
     }
 
     fun onHourlyRateChange(value: String) {
         hourlyRate = value.filter(Char::isDigit).take(11)
+        hourlyRateError = null
     }
 
     fun onPixKeyChange(value: String) {
@@ -59,30 +68,43 @@ class SettingsViewModel(
     }
 
     fun saveSettings() {
+        val first30 = first30Minutes.filter(Char::isDigit).toLongOrNull()?.let { it / 100.0 }
+        val hourly = hourlyRate.filter(Char::isDigit).toLongOrNull()?.let { it / 100.0 }
+
+        first30MinutesError = if (first30 == null || first30 < 0.0) {
+            "Informe o valor dos 30 minutos"
+        } else {
+            null
+        }
+
+        hourlyRateError = if (hourly == null || hourly <= 0.0) {
+            "Informe o valor por hora"
+        } else {
+            null
+        }
+
+        if (first30MinutesError != null || hourlyRateError != null) {
+            return
+        }
+
         viewModelScope.launch {
-            val first30 = first30Minutes.filter(Char::isDigit).toLongOrNull()?.let { it / 100.0 }
-            val hourly = hourlyRate.filter(Char::isDigit).toLongOrNull()?.let { it / 100.0 }
+            val safeFirst30 = first30!!
+            val safeHourly = hourly!!
+            val safeTolerance = 30 // default tolerance in minutes
 
-            if (first30 != null && hourly != null) {
-                // Validation
-                val safeFirst30 = if (first30 >= 0.0) first30 else 0.0
-                val safeHourly = if (hourly >= 0.0) hourly else 0.0
-                val safeTolerance = 30 // default tolerance in minutes
-
-                // Create config and save via use case
-                val config = ParkingConfig(
-                    first30MinutesPrice = safeFirst30,
-                    pricePerHour = safeHourly,
-                    toleranceMinutes = safeTolerance,
-                    pixKey = pixKey
-                )
-                saveParkingConfigUseCase(config)
-            }
+            // Create config and save via use case
+            val config = ParkingConfig(
+                first30MinutesPrice = safeFirst30,
+                pricePerHour = safeHourly,
+                toleranceMinutes = safeTolerance,
+                pixKey = pixKey
+            )
+            saveParkingConfigUseCase(config)
         }
     }
 
     private fun Double.toCentsDigits(): String {
-        val cents = Math.round(this * 100.0)
+        val cents = (this * 100.0).roundToInt()
         return cents.toString()
     }
 }

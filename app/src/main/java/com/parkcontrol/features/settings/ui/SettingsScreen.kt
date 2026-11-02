@@ -117,9 +117,13 @@ fun SettingsEntryScreen(
                     onValueChange = {
                         viewModel.onFirst30MinutesChange(it)
                     },
-                    label = { Text("Valor (R$)") },
+                    label = { Text("Valor (R$) *") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    isError = viewModel.first30MinutesError != null,
+                    supportingText = viewModel.first30MinutesError?.let { error ->
+                        { Text(error) }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = CurrencyMaskTransformation
                 )
@@ -159,9 +163,13 @@ fun SettingsEntryScreen(
                     onValueChange = {
                         viewModel.onHourlyRateChange(it)
                     },
-                    label = { Text("Valor por Hora (R$)") },
+                    label = { Text("Valor por Hora (R$) *") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    isError = viewModel.hourlyRateError != null,
+                    supportingText = viewModel.hourlyRateError?.let { error ->
+                        { Text(error) }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = CurrencyMaskTransformation
                 )
@@ -255,7 +263,9 @@ fun SettingsEntryScreen(
         Button(
             onClick = {
                 viewModel.saveSettings()
-                onSaved("Configurações atualizadas com sucesso")
+                if (viewModel.first30MinutesError == null && viewModel.hourlyRateError == null) {
+                    onSaved("Configurações atualizadas com sucesso")
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
