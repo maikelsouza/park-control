@@ -1,6 +1,7 @@
 package com.parkcontrol.features.monthlyCustomers.ui
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,9 +88,7 @@ private val SexoOptions = listOf(
 fun ActiveMonthlyCustomersScreen(
     onNavigate: (String) -> Unit,
     onNavigateForward: (String) -> Unit = onNavigate,
-    currentRoute: String = AppRoutes.MonthlyCustomers.route,
-    saveSuccessMessage: String? = null,
-    onSaveSuccessMessageShown: () -> Unit = {}
+    currentRoute: String = AppRoutes.MonthlyCustomers.route
 ) {
     AppDrawerScaffold(
         currentRoute = currentRoute,
@@ -124,13 +123,6 @@ fun ActiveMonthlyCustomersScreen(
             uiState.successMessage?.let { message ->
                 snackbarHostState.showSnackbar(message)
                 viewModel.clearSuccessMessage()
-            }
-        }
-
-        LaunchedEffect(saveSuccessMessage) {
-            saveSuccessMessage?.let { message ->
-                snackbarHostState.showSnackbar(message)
-                onSaveSuccessMessageShown()
             }
         }
 
@@ -301,7 +293,7 @@ fun MonthlyCustomerFormScreen(
     onNavigate: (String) -> Unit,
     customerId: Int?,
     onBack: () -> Unit,
-    onSaveSuccess: (String) -> Unit,
+    onSaveSuccess: () -> Unit,
     onNewCustomerSaved: (Int) -> Unit = {}
 ) {
     AppDrawerScaffold(
@@ -368,8 +360,12 @@ fun MonthlyCustomerFormScreen(
         LaunchedEffect(uiState.successMessage) {
             uiState.successMessage?.let { message ->
                 viewModel.clearSuccessMessage()
-                if (message.isNotBlank() && uiState.savedCustomerId == null) {
-                    onSaveSuccess(message)
+                // Mirrors the "Estacionar" screen feedback: a system Toast (icon on
+                // the left, rising animation), instead of a Snackbar message shown
+                // after navigating back to the customers list.
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                if (uiState.savedCustomerId == null) {
+                    onSaveSuccess()
                 }
             }
         }
