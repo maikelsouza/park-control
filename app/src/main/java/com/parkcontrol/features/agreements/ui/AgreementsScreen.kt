@@ -1,5 +1,6 @@
 package com.parkcontrol.features.agreements.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -66,7 +67,7 @@ fun AgreementsScreen(
     onNavigate: (String) -> Unit,
     agreementId: Int? = null,
     onFinish: (() -> Unit)? = null,
-    onSaveSuccess: ((String) -> Unit)? = null,
+    onSaveSuccess: (() -> Unit)? = null,
     onBack: (() -> Unit)? = null
 ) {
     AppDrawerScaffold(
@@ -111,8 +112,12 @@ fun AgreementsScreen(
             },
             onSuccessConsumed = { message ->
                 viewModel.clearSuccessMessage()
+                // Mirrors the "Estacionar" screen feedback: a system Toast (icon on
+                // the left, rising animation), instead of a Snackbar shown after
+                // navigating back to the agreements list.
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 if (onSaveSuccess != null) {
-                    onSaveSuccess(message)
+                    onSaveSuccess()
                 } else {
                     onFinish?.invoke()
                 }
@@ -234,10 +239,6 @@ private fun AgreementsFormContent(
 
     LaunchedEffect(successMessage) {
         successMessage?.let {
-            // Não aguardamos o Snackbar aqui: navegar de volta deve ser
-            // imediato. A mensagem é repassada para a tela de listagem,
-            // que a exibirá após a navegação (evita atraso perceptível
-            // ao salvar um convênio).
             onSuccessConsumed(it)
         }
     }
@@ -389,7 +390,12 @@ private fun AgreementsFormContent(
                 value = complement,
                 onValueChange = { complement = it.take(AgreementFormViewModel.MAX_COMPLEMENT_LENGTH) },
                 label = { Text("Complemento") },
-                placeholder = { Text("Apto, sala, bloco...") },
+                placeholder = {
+                    Text(
+                        "Apto, sala, bloco...",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
                 modifier = Modifier.weight(2f),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),

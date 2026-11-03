@@ -24,8 +24,6 @@ import com.parkcontrol.features.parking.ui.ParkingScreen
 import com.parkcontrol.features.parkingLot.ui.ParkingLotScreen
 import com.parkcontrol.features.settings.ui.SettingsScreen
 
-private const val MONTHLY_CUSTOMER_SAVE_RESULT_KEY = "monthly_customer_save_result"
-private const val AGREEMENT_SAVE_RESULT_KEY = "agreement_save_result"
 private const val HOME_SAVE_RESULT_KEY = "home_save_result"
 
 @Composable
@@ -93,34 +91,18 @@ fun AppNavigation(
         }
 
         composable(AppRoutes.MonthlyCustomers.route) {
-            val saveResult by it.savedStateHandle
-                .getStateFlow(MONTHLY_CUSTOMER_SAVE_RESULT_KEY, null as String?)
-                .collectAsState()
-
             ActiveMonthlyCustomersScreen(
                 onNavigate = navigateFromDrawer,
                 onNavigateForward = navigateForward,
-                currentRoute = AppRoutes.MonthlyCustomers.route,
-                saveSuccessMessage = saveResult,
-                onSaveSuccessMessageShown = {
-                    it.savedStateHandle[MONTHLY_CUSTOMER_SAVE_RESULT_KEY] = null
-                }
+                currentRoute = AppRoutes.MonthlyCustomers.route
             )
         }
 
         composable(AppRoutes.MonthlyCustomersActive.route) {
-            val saveResult by it.savedStateHandle
-                .getStateFlow(MONTHLY_CUSTOMER_SAVE_RESULT_KEY, null as String?)
-                .collectAsState()
-
             ActiveMonthlyCustomersScreen(
                 onNavigate = navigateFromDrawer,
                 onNavigateForward = navigateForward,
-                currentRoute = AppRoutes.MonthlyCustomersActive.route,
-                saveSuccessMessage = saveResult,
-                onSaveSuccessMessageShown = {
-                    it.savedStateHandle[MONTHLY_CUSTOMER_SAVE_RESULT_KEY] = null
-                }
+                currentRoute = AppRoutes.MonthlyCustomersActive.route
             )
         }
 
@@ -149,12 +131,7 @@ fun AppNavigation(
                 onNavigate = navigateFromDrawer,
                 customerId = customerId,
                 onBack = { navController.popBackStack() },
-                onSaveSuccess = { message ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(MONTHLY_CUSTOMER_SAVE_RESULT_KEY, message)
-                    navController.popBackStack()
-                },
+                onSaveSuccess = { navController.popBackStack() },
                 onNewCustomerSaved = { newCustomerId ->
                     navController.navigate(AppRoutes.CustomerVehicles.createRoute(newCustomerId)) {
                         // Remove the form from the back stack so back goes to the list
@@ -216,11 +193,7 @@ fun AppNavigation(
         composable(AppRoutes.Settings.route) {
             SettingsScreen(
                 onNavigate = navigateFromDrawer,
-                onSaved = { message ->
-                    navController.getBackStackEntry(AppRoutes.Home.route)
-                        .savedStateHandle[HOME_SAVE_RESULT_KEY] = message
-                    navigateFromDrawer(AppRoutes.Home.route)
-                }
+                onSaved = { navigateFromDrawer(AppRoutes.Home.route) }
             )
 
         }
@@ -228,43 +201,23 @@ fun AppNavigation(
         composable(AppRoutes.ParkingLotRegistration.route) {
             ParkingLotScreen(
                 onNavigate = navigateFromDrawer,
-                onSaved = { message ->
-                    navController.getBackStackEntry(AppRoutes.Home.route)
-                        .savedStateHandle[HOME_SAVE_RESULT_KEY] = message
-                    navigateFromDrawer(AppRoutes.Home.route)
-                }
+                onSaved = { navigateFromDrawer(AppRoutes.Home.route) }
             )
         }
 
         composable(AppRoutes.Agreements.route) {
-            val saveResult by it.savedStateHandle
-                .getStateFlow(AGREEMENT_SAVE_RESULT_KEY, null as String?)
-                .collectAsState()
-
             ActiveAgreementsScreen(
                 onNavigate = navigateFromDrawer,
                 onNavigateForward = navigateForward,
-                currentRoute = AppRoutes.Agreements.route,
-                saveSuccessMessage = saveResult,
-                onSaveSuccessMessageShown = {
-                    it.savedStateHandle[AGREEMENT_SAVE_RESULT_KEY] = null
-                }
+                currentRoute = AppRoutes.Agreements.route
             )
         }
 
         composable(AppRoutes.AgreementsActive.route) {
-            val saveResult by it.savedStateHandle
-                .getStateFlow(AGREEMENT_SAVE_RESULT_KEY, null as String?)
-                .collectAsState()
-
             ActiveAgreementsScreen(
                 onNavigate = navigateFromDrawer,
                 onNavigateForward = navigateForward,
-                currentRoute = AppRoutes.AgreementsActive.route,
-                saveSuccessMessage = saveResult,
-                onSaveSuccessMessageShown = {
-                    it.savedStateHandle[AGREEMENT_SAVE_RESULT_KEY] = null
-                }
+                currentRoute = AppRoutes.AgreementsActive.route
             )
         }
 
@@ -292,12 +245,7 @@ fun AppNavigation(
             AgreementsScreen(
                 onNavigate = navigateFromDrawer,
                 agreementId = agreementId,
-                onSaveSuccess = { message ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(AGREEMENT_SAVE_RESULT_KEY, message)
-                    navController.popBackStack()
-                },
+                onSaveSuccess = { navController.popBackStack() },
                 onBack = { navController.popBackStack() }
             )
         }
