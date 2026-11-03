@@ -4,6 +4,33 @@ Todas as alterações relevantes do Park Control serão documentadas neste arqui
 
 ## [Não lançado]
 
+## [1.1.2] - 03-11-2026
+
+### Corrigido
+- Removido o fundo escuro indevido do card **Primeiros 30 Minutos** na tela
+  de Configurações, aplicando `colorScheme.surface` para manter a mesma cor
+  de fundo dos demais cards da tela.
+- Padronizada a mensagem de sucesso exibida ao salvar o cadastro de
+  estacionamento: agora utiliza um Toast com ícone à esquerda e animação de
+  subida.
+- Padronizada a mensagem de sucesso exibida ao salvar a tela de
+  Configurações: agora utiliza um Toast com ícone à esquerda e animação de
+  subida.
+- Padronizadas as mensagens de sucesso na tela de Clientes: agora utilizam um Toast com
+  ícone à esquerda e animação de subida.
+- Padronizadas as mensagens de sucesso na tela de cadastro de veículo do cliente: agora utilizam um Toast com ícone
+  à esquerda e animação de subida(o salvamento comum não exibia nenhuma
+  mensagem de sucesso).
+- Padronizadas as mensagens de sucesso na tela de Convênios: agora utilizam um Toast com ícone à esquerda e
+  animação de subida, no lugar do Snackbar exibido anteriormente após navegar
+  de volta para a lista.
+- Ajustado o tamanho da fonte do placeholder do campo **Complemento** na tela
+  de cadastro de veículo no estacionamento, utilizando o estilo
+  `bodySmall` para melhor adequação ao espaço do campo.
+- Ajustado o tamanho da fonte do placeholder do campo **Complemento** na tela
+  de cadastro de convênio, utilizando o estilo `bodySmall` para melhor
+  adequação ao espaço do campo.
+
 ## [1.1.1] - 02-11-2026
 
 ### Adicionado
