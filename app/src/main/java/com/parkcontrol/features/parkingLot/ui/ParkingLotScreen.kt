@@ -1,5 +1,6 @@
 package com.parkcontrol.features.parkingLot.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,7 +54,7 @@ import com.parkcontrol.core.ui.masks.ZipCodeMaskTransformation
 @Composable
 fun ParkingLotScreen(
     onNavigate: (String) -> Unit,
-    onSaved: (String) -> Unit = {}
+    onSaved: () -> Unit = {}
 ) {
     AppDrawerScaffold(
         currentRoute = AppRoutes.ParkingLotRegistration.route,
@@ -72,11 +74,21 @@ fun ParkingLotScreen(
 fun ParkingLotEntryScreen(
     viewModel: ParkingLotViewModel,
     modifier: Modifier = Modifier,
-    onSaved: (String) -> Unit = {}
+    onSaved: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
     var stateExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Mirrors the "Estacionar" screen feedback: a system Toast (icon on the left,
+    // rising animation), instead of a Snackbar, when the entry is saved successfully.
+    LaunchedEffect(viewModel.successMessage) {
+        viewModel.successMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearSuccessMessage()
+        }
+    }
 
     val nameError = requiredFieldError(viewModel.name, viewModel.showValidation)
     val streetError = requiredFieldError(viewModel.street, viewModel.showValidation)
@@ -207,7 +219,12 @@ fun ParkingLotEntryScreen(
                 value = viewModel.complement,
                 onValueChange = viewModel::onComplementChange,
                 label = { Text("Complemento") },
-                placeholder = { Text("Galpão, fundos, próximo a...") },
+                placeholder = {
+                    Text(
+                        "Galpão, fundos, próximo a...",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
                 modifier = Modifier.weight(2f),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -309,7 +326,7 @@ fun ParkingLotEntryScreen(
         Button(
             onClick = {
                 viewModel.saveParkingLot {
-                    onSaved("Estacionamento salvo com sucesso")
+                    onSaved()
                 }
             },
             modifier = Modifier
