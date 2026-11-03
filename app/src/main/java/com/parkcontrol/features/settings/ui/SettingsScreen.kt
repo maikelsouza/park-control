@@ -1,5 +1,6 @@
 package com.parkcontrol.features.settings.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -38,7 +40,7 @@ import com.parkcontrol.core.ui.masks.toBrazilianCurrencyMask
 @Composable
 fun SettingsScreen(
     onNavigate: (String) -> Unit,
-    onSaved: (String) -> Unit = {}
+    onSaved: () -> Unit = {}
 ) {
 
     AppDrawerScaffold(
@@ -59,10 +61,11 @@ fun SettingsScreen(
 fun SettingsEntryScreen(
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    onSaved: (String) -> Unit = {}
+    onSaved: () -> Unit = {}
 ) {
 
     val colorScheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -90,6 +93,7 @@ fun SettingsEntryScreen(
         // Card 30 minutos
         Card(
             shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
             modifier = Modifier.fillMaxWidth()
         ) {
 
@@ -264,7 +268,10 @@ fun SettingsEntryScreen(
             onClick = {
                 viewModel.saveSettings()
                 if (viewModel.first30MinutesError == null && viewModel.hourlyRateError == null) {
-                    onSaved("Configurações atualizadas com sucesso")
+                    // Mirrors the "Estacionar" screen feedback: a system Toast (icon on
+                    // the left, rising animation), instead of a Snackbar on the Home screen.
+                    Toast.makeText(context, "Configurações atualizadas com sucesso", Toast.LENGTH_SHORT).show()
+                    onSaved()
                 }
             },
             modifier = Modifier
