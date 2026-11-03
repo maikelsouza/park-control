@@ -48,9 +48,7 @@ import java.util.Locale
 fun ActiveAgreementsScreen(
     onNavigate: (String) -> Unit,
     onNavigateForward: (String) -> Unit = onNavigate,
-    currentRoute: String = AppRoutes.AgreementsActive.route,
-    saveSuccessMessage: String? = null,
-    onSaveSuccessMessageShown: () -> Unit = {}
+    currentRoute: String = AppRoutes.AgreementsActive.route
 ) {
     AppDrawerScaffold(
         currentRoute = currentRoute,
@@ -67,13 +65,9 @@ fun ActiveAgreementsScreen(
 
         val filteredAgreements = uiState.agreements.filter { agreement ->
             val query = uiState.searchQuery.trim().lowercase(Locale.ROOT)
-            if (query.isBlank()) {
-                true
-            } else {
-                agreement.name.contains(query, ignoreCase = true) ||
+            query.isBlank() || agreement.name.contains(query, ignoreCase = true) ||
                     agreement.contactName.contains(query, ignoreCase = true) ||
                     agreement.phone.contains(query)
-            }
         }
 
         LaunchedEffect(uiState.errorMessage) {
@@ -87,13 +81,6 @@ fun ActiveAgreementsScreen(
             uiState.successMessage?.let { message ->
                 snackbarHostState.showSnackbar(message)
                 viewModel.clearSuccessMessage()
-            }
-        }
-
-        LaunchedEffect(saveSuccessMessage) {
-            saveSuccessMessage?.let { message ->
-                snackbarHostState.showSnackbar(message)
-                onSaveSuccessMessageShown()
             }
         }
 

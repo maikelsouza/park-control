@@ -1,5 +1,6 @@
 package com.parkcontrol.features.monthlyCustomers.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -139,6 +140,9 @@ fun CustomerVehicleFormScreen(
     LaunchedEffect(uiState.successMessage) {
         uiState.successMessage?.let {
             viewModel.clearSuccessMessage()
+            // Mirrors the "Estacionar" screen feedback: a system Toast (icon on the
+            // left, rising animation), instead of a Snackbar.
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             if (uiState.saveAndAddAnother) {
                 // Reset form for a new vehicle
                 brand = ""
@@ -150,7 +154,6 @@ fun CustomerVehicleFormScreen(
                 category = null
                 parkingSpot = ""
                 didPrefill = false
-                snackbarHostState.showSnackbar(it)
             } else {
                 onFinish()
             }
